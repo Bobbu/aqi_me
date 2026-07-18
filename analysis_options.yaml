@@ -21,11 +21,11 @@ analyzer:
 
 linter:
   rules:
-    # Style consistency
+    # Style consistency. (We use package: imports throughout lib/ by convention;
+    # `always_use_package_imports` is intentionally off so tests can import their
+    # own helpers/fixtures with relative paths.)
     prefer_single_quotes: true
-    always_use_package_imports: true
     directives_ordering: true
-    prefer_relative_imports: false
 
     # Safety / correctness
     require_trailing_commas: true
