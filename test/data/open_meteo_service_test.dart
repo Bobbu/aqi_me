@@ -64,6 +64,52 @@ void main() {
 
       expect(await service.geocode('Nowhereville'), isEmpty);
     });
+
+    test('"City, ST" filters candidates to the matching state', () async {
+      final OpenMeteoService service = OpenMeteoService(
+        dio: fakeDio((_) => const FakeResponse(200, geocodingWashingtonJson)),
+      );
+
+      final List<GeocodeResult> dc = await service.geocode('Washington, DC');
+      expect(dc, hasLength(1));
+      expect(dc.single.admin1, 'District of Columbia');
+
+      final List<GeocodeResult> pa = await service.geocode('Washington, PA');
+      expect(pa, hasLength(1));
+      expect(pa.single.admin1, 'Pennsylvania');
+    });
+
+    test('"City, StateName" also works', () async {
+      final OpenMeteoService service = OpenMeteoService(
+        dio: fakeDio((_) => const FakeResponse(200, geocodingWashingtonJson)),
+      );
+
+      final List<GeocodeResult> res = await service.geocode(
+        'Washington, Indiana',
+      );
+      expect(res, hasLength(1));
+      expect(res.single.admin1, 'Indiana');
+    });
+
+    test('a non-matching qualifier falls back to all candidates', () async {
+      final OpenMeteoService service = OpenMeteoService(
+        dio: fakeDio((_) => const FakeResponse(200, geocodingWashingtonJson)),
+      );
+
+      // No Washington in Texas here — user still sees the candidates.
+      final List<GeocodeResult> res = await service.geocode('Washington, TX');
+      expect(res, hasLength(4));
+    });
+
+    test('bare name is unaffected (no qualifier)', () async {
+      final OpenMeteoService service = OpenMeteoService(
+        dio: fakeDio((_) => const FakeResponse(200, geocodingWashingtonJson)),
+      );
+
+      final List<GeocodeResult> res = await service.geocode('Washington');
+      expect(res, hasLength(4));
+      expect(res.first.name, 'Washington D.C.');
+    });
   });
 
   group('OpenMeteoService.getAqi', () {

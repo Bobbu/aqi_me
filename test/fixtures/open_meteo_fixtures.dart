@@ -33,6 +33,27 @@ const String geocodingDenverJson = '''
 
 const String geocodingEmptyJson = '{"generationtime_ms": 0.4}';
 
+/// Multiple "Washington" candidates across several states — used to test
+/// "City, State" region filtering.
+const String geocodingWashingtonJson = '''
+{
+  "results": [
+    {"id": 1, "name": "Washington D.C.", "latitude": 38.895, "longitude": -77.036,
+     "country_code": "US", "admin1": "District of Columbia", "country": "United States",
+     "timezone": "America/New_York"},
+    {"id": 2, "name": "Washington", "latitude": 40.174, "longitude": -80.246,
+     "country_code": "US", "admin1": "Pennsylvania", "country": "United States",
+     "timezone": "America/New_York"},
+    {"id": 3, "name": "Washington", "latitude": 38.659, "longitude": -87.173,
+     "country_code": "US", "admin1": "Indiana", "country": "United States",
+     "timezone": "America/Indiana/Indianapolis"},
+    {"id": 4, "name": "Washington", "latitude": 35.546, "longitude": -77.052,
+     "country_code": "US", "admin1": "North Carolina", "country": "United States",
+     "timezone": "America/New_York"}
+  ]
+}
+''';
+
 /// Moderate day: overall US AQI 78, driven by ozone (its sub-index is highest).
 const String airQualityJson = '''
 {

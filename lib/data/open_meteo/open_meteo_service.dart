@@ -1,4 +1,5 @@
 import 'package:aqi_me/core/aqi_scale.dart';
+import 'package:aqi_me/core/region_matching.dart';
 import 'package:aqi_me/data/aqi_service.dart';
 import 'package:aqi_me/data/open_meteo/open_meteo_dtos.dart';
 import 'package:aqi_me/models/aqi_reading.dart';
@@ -42,11 +43,23 @@ class OpenMeteoService implements AqiService {
     final String trimmed = query.trim();
     if (trimmed.isEmpty) return const <GeocodeResult>[];
 
+    // Split "City, State, Country" into the place name (searched) and region
+    // qualifiers (filtered locally — Open-Meteo only matches the bare name).
+    final List<String> segments = trimmed
+        .split(',')
+        .map((String s) => s.trim())
+        .where((String s) => s.isNotEmpty)
+        .toList();
+    final String name = segments.isEmpty ? trimmed : segments.first;
+    final List<String> qualifiers = segments.skip(1).toList();
+    if (name.isEmpty) return const <GeocodeResult>[];
+
     final Map<String, dynamic> json = await _getJson(
       _geocodingUrl,
       <String, dynamic>{
-        'name': trimmed,
-        'count': 5,
+        'name': name,
+        // Fetch a wider set so region filtering has candidates to match.
+        'count': qualifiers.isEmpty ? 5 : 10,
         'language': 'en',
         'format': 'json',
       },
@@ -55,8 +68,29 @@ class OpenMeteoService implements AqiService {
     final GeocodingResponseDto dto = GeocodingResponseDto.fromJson(json);
     final List<GeocodingResultDto> results =
         dto.results ?? const <GeocodingResultDto>[];
+
+    // Keep only candidates whose region matches every qualifier the user typed.
+    List<GeocodingResultDto> ranked = results;
+    if (qualifiers.isNotEmpty) {
+      final List<GeocodingResultDto> matched = results
+          .where(
+            (GeocodingResultDto r) => qualifiers.every(
+              (String q) => regionQualifierMatches(
+                q,
+                admin1: r.admin1,
+                country: r.country,
+                countryCode: r.countryCode,
+              ),
+            ),
+          )
+          .toList();
+      // Fall back to the name-only results if nothing matched, so the user
+      // still sees candidates rather than a dead end.
+      ranked = matched.isNotEmpty ? matched : results;
+    }
+
     return <GeocodeResult>[
-      for (final GeocodingResultDto r in results)
+      for (final GeocodingResultDto r in ranked.take(5))
         GeocodeResult(
           name: r.name,
           latitude: r.latitude,
