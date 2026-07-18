@@ -1,6 +1,5 @@
 import 'package:aqi_me/core/aqi_scale.dart';
 import 'package:aqi_me/core/formatters.dart';
-import 'package:aqi_me/core/theme.dart';
 import 'package:aqi_me/data/aqi_service.dart';
 import 'package:aqi_me/data/location_builders.dart';
 import 'package:aqi_me/models/aqi_reading.dart';
@@ -8,6 +7,7 @@ import 'package:aqi_me/models/location.dart';
 import 'package:aqi_me/models/location_reading.dart';
 import 'package:aqi_me/state/locations_controller.dart';
 import 'package:aqi_me/state/reading_providers.dart';
+import 'package:aqi_me/ui/widgets/animated_aqi_number.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -150,14 +150,7 @@ class _CardBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          '${aqi.usAqi}',
-          style: AqiTheme.readout(
-            fontSize: 46,
-            color: aqi.category.solid,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        AnimatedAqiNumber(value: aqi.usAqi, color: aqi.category.solid),
         const SizedBox(height: 6),
         Text(
           aqi.category.label.toUpperCase(),
@@ -167,9 +160,7 @@ class _CardBody extends StatelessWidget {
         if (meta.isNotEmpty) Text(meta, style: theme.textTheme.bodySmall),
         Text(
           'as of ${formatClock(aqi.observedAt)}',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
+          style: theme.textTheme.bodySmall,
         ),
       ],
     );

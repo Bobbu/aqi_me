@@ -1,5 +1,6 @@
 import 'package:aqi_me/models/location.dart';
 import 'package:aqi_me/state/locations_controller.dart';
+import 'package:aqi_me/state/providers.dart';
 import 'package:aqi_me/state/reading_providers.dart';
 import 'package:aqi_me/ui/widgets/add_location_field.dart';
 import 'package:aqi_me/ui/widgets/air_ribbon.dart';
@@ -58,6 +59,31 @@ class HomePage extends ConsumerWidget {
   }
 }
 
+/// Toggles the app between light and dark, seeded from the current effective
+/// brightness so the first tap always flips what the user sees.
+class _ThemeToggle extends ConsumerWidget {
+  const _ThemeToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    final ThemeMode mode = ref.watch(themeModeProvider);
+    final bool platformDark =
+        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final bool isDark =
+        mode == ThemeMode.dark || (mode == ThemeMode.system && platformDark);
+
+    return IconButton(
+      icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+      tooltip: isDark ? 'Switch to light' : 'Switch to dark',
+      color: theme.colorScheme.outline,
+      onPressed: () => ref.read(themeModeProvider.notifier).state = isDark
+          ? ThemeMode.light
+          : ThemeMode.dark,
+    );
+  }
+}
+
 class _Header extends ConsumerWidget {
   const _Header({required this.locations});
 
@@ -69,6 +95,16 @@ class _Header extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.asset(
+            'assets/aqi_me_logo.png',
+            width: 44,
+            height: 44,
+            filterQuality: FilterQuality.medium,
+          ),
+        ),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,6 +137,7 @@ class _Header extends ConsumerWidget {
             },
           ),
         ],
+        const _ThemeToggle(),
       ],
     );
   }
