@@ -83,6 +83,8 @@ class _AirRibbon extends StatelessWidget {
       child: SizedBox(
         height: 10,
         child: Row(
+          // Without stretch, the childless ColoredBoxes collapse to 0 height.
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             for (final AqiCategory category in AqiCategory.values)
               Expanded(child: ColoredBox(color: category.solid)),
