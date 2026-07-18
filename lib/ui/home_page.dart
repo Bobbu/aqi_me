@@ -1,29 +1,21 @@
-import 'package:aqi_me/core/aqi_scale.dart';
-import 'package:aqi_me/core/theme.dart';
+import 'package:aqi_me/models/location.dart';
+import 'package:aqi_me/state/locations_controller.dart';
+import 'package:aqi_me/state/reading_providers.dart';
+import 'package:aqi_me/ui/widgets/add_location_field.dart';
+import 'package:aqi_me/ui/widgets/air_ribbon.dart';
+import 'package:aqi_me/ui/widgets/empty_state.dart';
+import 'package:aqi_me/ui/widgets/location_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// M0 placeholder home page.
-///
-/// This is scaffolding, not the real product screen — it renders the design
-/// tokens (chrome, typography, and the AQI palette from `aqi_scale.dart`) so we
-/// can see the "instrument for the air" direction take shape. It will be
-/// replaced by the location grid in M2/M3.
-class HomePage extends StatelessWidget {
+/// The single app screen: header, smart add-field, the air ribbon, and the
+/// grid of location cards (or an empty state).
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
-  /// A representative AQI value per category, for the preview only.
-  static const Map<AqiCategory, int> _sampleValues = <AqiCategory, int>{
-    AqiCategory.good: 42,
-    AqiCategory.moderate: 78,
-    AqiCategory.unhealthySensitive: 132,
-    AqiCategory.unhealthy: 175,
-    AqiCategory.veryUnhealthy: 240,
-    AqiCategory.hazardous: 350,
-  };
-
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final List<Location> locations = ref.watch(locationsControllerProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -31,37 +23,31 @@ class HomePage extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 960),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(
-                    'AQI·ME',
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      letterSpacing: 1.5,
+                  _Header(locations: locations),
+                  const SizedBox(height: 20),
+                  const AddLocationField(),
+                  const SizedBox(height: 20),
+                  if (locations.isEmpty)
+                    const EmptyState()
+                  else ...<Widget>[
+                    AirRibbon(locations: locations),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: <Widget>[
+                        for (final Location location in locations)
+                          LocationCard(
+                            location: location,
+                            key: ValueKey<String>(location.id),
+                          ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'An instrument for the air — scaffolding preview (M0)',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 24),
-                  const _AirRibbon(),
-                  const SizedBox(height: 32),
-                  _CategoryLabel('The AQI scale', theme: theme),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    children: <Widget>[
-                      for (final AqiCategory category in AqiCategory.values)
-                        _CategoryCard(
-                          category: category,
-                          value: _sampleValues[category]!,
-                        ),
-                    ],
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -72,106 +58,50 @@ class HomePage extends StatelessWidget {
   }
 }
 
-/// The aggregate "air ribbon" — one segment per category (TECH_DESIGN §4.3).
-class _AirRibbon extends StatelessWidget {
-  const _AirRibbon();
+class _Header extends ConsumerWidget {
+  const _Header({required this.locations});
+
+  final List<Location> locations;
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: SizedBox(
-        height: 10,
-        child: Row(
-          // Without stretch, the childless ColoredBoxes collapse to 0 height.
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            for (final AqiCategory category in AqiCategory.values)
-              Expanded(child: ColoredBox(color: category.solid)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A single category preview: color spine + haze wash + mono readout.
-class _CategoryCard extends StatelessWidget {
-  const _CategoryCard({required this.category, required this.value});
-
-  final AqiCategory category;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
-
-    return Container(
-      width: 200,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.colorScheme.outline),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: DecoratedBox(
-        // The haze: a soft radial wash whose density scales with severity.
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            radius: 1.1,
-            center: const Alignment(-0.6, -0.8),
-            colors: <Color>[category.haze, Colors.transparent],
-          ),
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Color spine.
-              Container(width: 4, color: category.solid),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        '$value',
-                        style: AqiTheme.readout(
-                          fontSize: 52,
-                          color: category.solid,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        category.label.toUpperCase(),
-                        style: theme.textTheme.labelSmall,
-                      ),
-                    ],
-                  ),
+              Text(
+                'AQI·ME',
+                style: theme.textTheme.headlineLarge?.copyWith(
+                  fontSize: 30,
+                  letterSpacing: 1.5,
                 ),
               ),
+              Text('Air quality at a glance', style: theme.textTheme.bodySmall),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Small uppercase section label (eyebrow).
-class _CategoryLabel extends StatelessWidget {
-  const _CategoryLabel(this.text, {required this.theme});
-
-  final String text;
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text.toUpperCase(),
-      style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1.2),
+        if (locations.isNotEmpty) ...<Widget>[
+          Text(
+            '${locations.length} / ${LocationsController.maxLocations}',
+            style: theme.textTheme.labelSmall,
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh all',
+            color: theme.colorScheme.outline,
+            onPressed: () {
+              for (final Location location in locations) {
+                refreshLocation(ref, location);
+              }
+            },
+          ),
+        ],
+      ],
     );
   }
 }
