@@ -69,34 +69,50 @@ class _HomePageState extends ConsumerState<HomePage>
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 960),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        // Sticky footer: content anchors to the top and scrolls when tall; the
+        // footer sits at the bottom of the viewport when content is short.
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverFillRemaining(
+              hasScrollBody: false,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _Header(locations: locations),
-                  const SizedBox(height: 20),
-                  const AddLocationField(),
-                  const SizedBox(height: 20),
-                  if (locations.isEmpty)
-                    const EmptyState()
-                  else ...<Widget>[
-                    AirRibbon(locations: locations),
-                    const SizedBox(height: 24),
-                    if (ref.watch(viewModeProvider) == ViewMode.list)
-                      _LocationList(locations: locations)
-                    else
-                      _LocationGrid(locations: locations),
-                  ],
-                  const SizedBox(height: 24),
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 960),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            _Header(locations: locations),
+                            const SizedBox(height: 20),
+                            const AddLocationField(),
+                            const SizedBox(height: 20),
+                            if (locations.isEmpty)
+                              const EmptyState()
+                            else ...<Widget>[
+                              AirRibbon(locations: locations),
+                              const SizedBox(height: 24),
+                              if (ref.watch(viewModeProvider) == ViewMode.list)
+                                _LocationList(locations: locations)
+                              else
+                                _LocationGrid(locations: locations),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Minimum breathing room, then push the footer to the bottom.
+                  const SizedBox(height: 48),
+                  const Spacer(),
                   const Center(child: AppFooter()),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
