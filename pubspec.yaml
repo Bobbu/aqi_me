@@ -25,6 +25,10 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
+  # IANA tz database — derive named zone abbreviations (EDT, CDT, JST…) that
+  # Open-Meteo doesn't provide. Bundled data, no network.
+  timezone: ^0.11.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

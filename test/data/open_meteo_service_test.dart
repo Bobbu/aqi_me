@@ -6,6 +6,7 @@ import 'package:aqi_me/models/geocode_result.dart';
 import 'package:aqi_me/models/weather_reading.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/data/latest_10y.dart' as tzdata;
 
 import '../fixtures/fake_http_adapter.dart';
 import '../fixtures/open_meteo_fixtures.dart';
@@ -23,6 +24,8 @@ FakeResponse _byHost(RequestOptions options) {
 }
 
 void main() {
+  setUpAll(tzdata.initializeTimeZones);
+
   group('OpenMeteoService.geocode', () {
     test('parses candidates and preserves order', () async {
       final OpenMeteoService service = OpenMeteoService(dio: fakeDio(_byHost));
@@ -123,7 +126,8 @@ void main() {
       // Ozone has the highest sub-index (78) in the fixture.
       expect(reading.dominantPollutant, 'o3');
       expect(reading.observedAt, DateTime(2026, 7, 18, 14));
-      expect(reading.timezoneLabel, 'GMT-6');
+      // America/Denver in July is Mountain Daylight Time.
+      expect(reading.timezoneLabel, 'MDT');
       expect(reading.pollutants, isNotNull);
       expect(reading.pollutants!['pm2_5'], closeTo(13.2, 0.001));
       expect(reading.pollutants!['o3'], closeTo(92.0, 0.001));

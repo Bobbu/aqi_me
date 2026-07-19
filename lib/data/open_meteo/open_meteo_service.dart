@@ -6,6 +6,7 @@ import 'package:aqi_me/models/aqi_reading.dart';
 import 'package:aqi_me/models/geocode_result.dart';
 import 'package:aqi_me/models/weather_reading.dart';
 import 'package:dio/dio.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 /// [AqiService] backed by the free, key-less Open-Meteo APIs (TECH_DESIGN §8).
 /// All requests are GET, no auth, CORS-enabled — safe to call from the browser.
@@ -122,14 +123,19 @@ class OpenMeteoService implements AqiService {
     }
 
     final int usAqi = current.usAqi!.round();
+    final DateTime observedAt = _parseTime(current.time);
     final Map<String, double> pollutants = _pollutantMap(current);
     return AqiReading(
       usAqi: usAqi,
       category: aqiCategoryFor(usAqi),
-      observedAt: _parseTime(current.time),
+      observedAt: observedAt,
       dominantPollutant: _dominantPollutant(current),
       pollutants: pollutants.isEmpty ? null : pollutants,
-      timezoneLabel: dto.timezoneAbbreviation,
+      timezoneLabel: _zoneLabel(
+        dto.timezone,
+        observedAt,
+        dto.timezoneAbbreviation,
+      ),
     );
   }
 
@@ -220,4 +226,26 @@ class OpenMeteoService implements AqiService {
   /// Open-Meteo returns local wall-clock time (we pass `timezone=auto`), e.g.
   /// `2026-07-18T14:00`. Falls back to now if the field is malformed.
   DateTime _parseTime(String raw) => DateTime.tryParse(raw) ?? DateTime.now();
+
+  /// A named, DST-aware zone abbreviation (e.g. "EDT", "CDT", "JST") for the
+  /// location's [iana] zone at [localWallClock]. Falls back to [fallback] (the
+  /// provider's "GMT-x" label) when the zone is unknown or tz data isn't loaded.
+  String? _zoneLabel(String? iana, DateTime localWallClock, String? fallback) {
+    if (iana == null || iana.isEmpty) return fallback;
+    try {
+      final tz.Location location = tz.getLocation(iana);
+      final tz.TZDateTime local = tz.TZDateTime(
+        location,
+        localWallClock.year,
+        localWallClock.month,
+        localWallClock.day,
+        localWallClock.hour,
+        localWallClock.minute,
+      );
+      final String name = local.timeZoneName;
+      return name.isEmpty ? fallback : name;
+    } on Object {
+      return fallback;
+    }
+  }
 }
