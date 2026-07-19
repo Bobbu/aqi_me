@@ -19,11 +19,6 @@ dependencies:
   # Local, per-device persistence of the location list
   shared_preferences: ^2.3.3
 
-  # Typography (see lib/core/theme.dart). NOTE: google_fonts fetches font files at
-  # runtime by default; before release we bundle these as assets so the only outbound
-  # calls are to Open-Meteo (see TECH_DESIGN §15 / open questions).
-  google_fonts: ^6.2.1
-
   # Immutable models + JSON (annotations; codegen via build_runner in dev_dependencies)
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
@@ -45,3 +40,19 @@ flutter:
   uses-material-design: true
   assets:
     - assets/aqi_me_logo.png
+  # Bundled fonts (OFL) — kept local so the only outbound calls are to Open-Meteo
+  # (TECH_DESIGN §15). Space Grotesk and Inter are variable fonts; Flutter maps
+  # FontWeight onto the wght axis.
+  fonts:
+    - family: Space Grotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
+    - family: IBM Plex Mono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexMono-SemiBold.ttf
+          weight: 600

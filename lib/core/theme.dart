@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// The neutral "instrument" chrome for AQI.me (TECH_DESIGN §4).
 ///
@@ -24,11 +23,16 @@ abstract final class AqiColors {
 
 /// Builds the light and dark [ThemeData] for the app.
 ///
-/// Typography is the instrument-readout pairing from §4.2:
+/// Typography is the instrument-readout pairing from §4.2, using bundled fonts
+/// (no runtime fetching):
 ///  - Space Grotesk — display (location names, headers)
 ///  - Inter — body / UI (labels, secondary detail)
 ///  - IBM Plex Mono — the numeric AQI readout (applied at the widget layer)
 abstract final class AqiTheme {
+  static const String _display = 'Space Grotesk';
+  static const String _body = 'Inter';
+  static const String _mono = 'IBM Plex Mono';
+
   static ThemeData light() => _base(Brightness.light);
   static ThemeData dark() => _base(Brightness.dark);
 
@@ -39,12 +43,13 @@ abstract final class AqiTheme {
     required Color color,
     FontWeight fontWeight = FontWeight.w500,
   }) {
-    return GoogleFonts.ibmPlexMono(
+    return TextStyle(
+      fontFamily: _mono,
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
       // Tabular figures keep changing numbers from shifting width.
-      fontFeatures: const [FontFeature.tabularFigures()],
+      fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
       height: 1,
     );
   }
@@ -72,12 +77,10 @@ abstract final class AqiTheme {
           outlineVariant: hairline,
         );
 
-    // Display face for headings, body face for everything textual.
-    final TextTheme textTheme = GoogleFonts.interTextTheme(
-      isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme,
-    ).apply(bodyColor: ink, displayColor: ink);
-
-    final TextTheme displayTheme = GoogleFonts.spaceGroteskTextTheme(textTheme);
+    // Body face for everything textual; display face grafted onto headings.
+    final TextTheme textTheme = (isDark ? ThemeData.dark() : ThemeData.light())
+        .textTheme
+        .apply(fontFamily: _body, bodyColor: ink, displayColor: ink);
 
     return ThemeData(
       useMaterial3: true,
@@ -86,16 +89,20 @@ abstract final class AqiTheme {
       scaffoldBackgroundColor: background,
       canvasColor: background,
       dividerColor: hairline,
+      fontFamily: _body,
       textTheme: textTheme.copyWith(
-        headlineLarge: displayTheme.headlineLarge?.copyWith(
+        headlineLarge: textTheme.headlineLarge?.copyWith(
+          fontFamily: _display,
           fontWeight: FontWeight.w700,
           color: ink,
         ),
-        headlineMedium: displayTheme.headlineMedium?.copyWith(
+        headlineMedium: textTheme.headlineMedium?.copyWith(
+          fontFamily: _display,
           fontWeight: FontWeight.w600,
           color: ink,
         ),
-        titleLarge: displayTheme.titleLarge?.copyWith(
+        titleLarge: textTheme.titleLarge?.copyWith(
+          fontFamily: _display,
           fontWeight: FontWeight.w600,
           color: ink,
         ),

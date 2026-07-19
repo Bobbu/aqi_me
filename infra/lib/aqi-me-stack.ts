@@ -89,6 +89,10 @@ export class AqiMeStack extends cdk.Stack {
       sources: [s3deploy.Source.asset(webBundle)],
       destinationBucket: bucket,
       prune: true,
+      // The default 128 MB deploy Lambda OOMs syncing the CanvasKit bundle
+      // (~38 MB extracted). Give it room.
+      memoryLimit: 1024,
+      exclude: ['.DS_Store', '**/.DS_Store'],
       cacheControl: [
         s3deploy.CacheControl.setPublic(),
         s3deploy.CacheControl.maxAge(cdk.Duration.days(365)),
@@ -103,6 +107,7 @@ export class AqiMeStack extends cdk.Stack {
       sources: [s3deploy.Source.asset(webBundle)],
       destinationBucket: bucket,
       prune: false,
+      memoryLimit: 1024,
       exclude: ['*', '*/**'],
       include: ['index.html', 'flutter_service_worker.js', 'version.json'],
       cacheControl: [
