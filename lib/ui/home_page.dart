@@ -70,10 +70,11 @@ class _HomePageState extends ConsumerState<HomePage>
     final List<Location> locations = ref.watch(locationsControllerProvider);
 
     return Scaffold(
+      // Sticky footer that still scrolls: the content is one sliver at its full
+      // natural height (so a tall list scrolls all the way to the last card), and
+      // a trailing SliverFillRemaining pins the footer to the bottom of the
+      // viewport when the content is short — without clipping tall content.
       body: SafeArea(
-        // Sticky footer done right: the content is its own sliver (full natural
-        // height, so it always scrolls), and a second sliver bottom-pins the
-        // footer when content is short — without clipping tall content.
         child: CustomScrollView(
           slivers: <Widget>[
             SliverToBoxAdapter(
@@ -108,11 +109,11 @@ class _HomePageState extends ConsumerState<HomePage>
             ),
             const SliverFillRemaining(
               hasScrollBody: false,
+              fillOverscroll: false,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  // Minimum breathing room, then push the footer to the bottom.
                   SizedBox(height: 48),
-                  Spacer(),
                   Center(child: AppFooter()),
                   SizedBox(height: 8),
                 ],
