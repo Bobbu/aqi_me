@@ -47,6 +47,17 @@ class LocationsController extends Notifier<List<Location>> {
     _persist();
   }
 
+  /// Moves the location at [oldIndex] to [newIndex] (plain remove-then-insert;
+  /// callers pass the final insert position) and persists.
+  void reorder(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= state.length) return;
+    final List<Location> next = <Location>[...state];
+    final Location moved = next.removeAt(oldIndex);
+    next.insert(newIndex.clamp(0, next.length), moved);
+    state = next;
+    _persist();
+  }
+
   void _persist() {
     unawaited(ref.read(locationStoreProvider).save(state));
   }

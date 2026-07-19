@@ -4,10 +4,12 @@ import 'package:aqi_me/models/location.dart';
 import 'package:aqi_me/state/locations_controller.dart';
 import 'package:aqi_me/state/providers.dart';
 import 'package:aqi_me/state/reading_providers.dart';
+import 'package:aqi_me/state/view_mode.dart';
 import 'package:aqi_me/ui/widgets/add_location_field.dart';
 import 'package:aqi_me/ui/widgets/air_ribbon.dart';
 import 'package:aqi_me/ui/widgets/empty_state.dart';
 import 'package:aqi_me/ui/widgets/location_card.dart';
+import 'package:aqi_me/ui/widgets/location_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -83,17 +85,10 @@ class _HomePageState extends ConsumerState<HomePage>
                   else ...<Widget>[
                     AirRibbon(locations: locations),
                     const SizedBox(height: 24),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: <Widget>[
-                        for (final Location location in locations)
-                          LocationCard(
-                            location: location,
-                            key: ValueKey<String>(location.id),
-                          ),
-                      ],
-                    ),
+                    if (ref.watch(viewModeProvider) == ViewMode.list)
+                      _LocationList(locations: locations)
+                    else
+                      _LocationGrid(locations: locations),
                   ],
                 ],
               ),
@@ -172,6 +167,7 @@ class _Header extends ConsumerWidget {
             style: theme.textTheme.labelSmall,
           ),
           const SizedBox(width: 8),
+          const _ViewToggle(),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh all',
@@ -185,6 +181,131 @@ class _Header extends ConsumerWidget {
         ],
         const _ThemeToggle(),
       ],
+    );
+  }
+}
+
+/// Switches between the grid and list layouts (persisted).
+class _ViewToggle extends ConsumerWidget {
+  const _ViewToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    final ViewMode mode = ref.watch(viewModeProvider);
+    final bool isList = mode == ViewMode.list;
+    return IconButton(
+      icon: Icon(isList ? Icons.grid_view_outlined : Icons.view_list_outlined),
+      tooltip: isList ? 'Grid view' : 'List view',
+      color: theme.colorScheme.outline,
+      onPressed: () => ref.read(viewModeProvider.notifier).toggle(),
+    );
+  }
+}
+
+/// The reorderable card grid. Long-press a card and drop it onto another to
+/// reorder; the order is shared with the list view and persisted.
+class _LocationGrid extends ConsumerWidget {
+  const _LocationGrid({required this.locations});
+
+  final List<Location> locations;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: <Widget>[
+        for (int i = 0; i < locations.length; i++)
+          _DraggableGridCard(
+            key: ValueKey<String>(locations[i].id),
+            location: locations[i],
+            index: i,
+          ),
+      ],
+    );
+  }
+}
+
+class _DraggableGridCard extends ConsumerWidget {
+  const _DraggableGridCard({
+    required this.location,
+    required this.index,
+    super.key,
+  });
+
+  final Location location;
+  final int index;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    return DragTarget<int>(
+      onWillAcceptWithDetails: (DragTargetDetails<int> d) => d.data != index,
+      onAcceptWithDetails: (DragTargetDetails<int> d) =>
+          ref.read(locationsControllerProvider.notifier).reorder(d.data, index),
+      builder:
+          (BuildContext context, List<int?> candidate, List<dynamic> rejected) {
+            final bool hovering = candidate.isNotEmpty;
+            return LongPressDraggable<int>(
+              data: index,
+              feedback: Material(
+                color: Colors.transparent,
+                child: Opacity(
+                  opacity: 0.92,
+                  child: SizedBox(
+                    width: LocationCard.width,
+                    child: LocationCard(location: location),
+                  ),
+                ),
+              ),
+              childWhenDragging: Opacity(
+                opacity: 0.3,
+                child: LocationCard(location: location),
+              ),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: hovering
+                        ? theme.colorScheme.onSurface
+                        : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+                child: LocationCard(location: location),
+              ),
+            );
+          },
+    );
+  }
+}
+
+/// The reorderable list layout — drag the handle on each row to reorder.
+class _LocationList extends ConsumerWidget {
+  const _LocationList({required this.locations});
+
+  final List<Location> locations;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      buildDefaultDragHandles: false,
+      itemCount: locations.length,
+      onReorder: (int oldIndex, int newIndex) {
+        if (newIndex > oldIndex) newIndex -= 1;
+        ref
+            .read(locationsControllerProvider.notifier)
+            .reorder(oldIndex, newIndex);
+      },
+      itemBuilder: (BuildContext context, int i) => Padding(
+        key: ValueKey<String>(locations[i].id),
+        padding: const EdgeInsets.only(bottom: 12),
+        child: LocationRow(location: locations[i], index: i),
+      ),
     );
   }
 }

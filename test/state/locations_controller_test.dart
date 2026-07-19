@@ -85,6 +85,32 @@ void main() {
     expect(list.single.id, 'id2');
   });
 
+  test('reorders locations and persists', () async {
+    final ProviderContainer c = await _container(prefs);
+    final LocationsController ctrl = c.read(
+      locationsControllerProvider.notifier,
+    );
+    ctrl
+      ..add(_loc(1))
+      ..add(_loc(2))
+      ..add(_loc(3));
+
+    // [id1, id2, id3] -> move first to the end -> [id2, id3, id1]
+    ctrl.reorder(0, 2);
+    expect(
+      c.read(locationsControllerProvider).map((Location l) => l.id).toList(),
+      <String>['id2', 'id3', 'id1'],
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    // A fresh controller loads the reordered list.
+    final ProviderContainer c2 = await _container(prefs);
+    expect(
+      c2.read(locationsControllerProvider).map((Location l) => l.id).toList(),
+      <String>['id2', 'id3', 'id1'],
+    );
+  });
+
   test('seeds default locations on a first-ever visit', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final SharedPreferences fresh = await SharedPreferences.getInstance();
