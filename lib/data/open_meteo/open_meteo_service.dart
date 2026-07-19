@@ -113,9 +113,8 @@ class OpenMeteoService implements AqiService {
           'timezone': 'auto',
         });
 
-    final AirQualityCurrentDto? current = AirQualityResponseDto.fromJson(
-      json,
-    ).current;
+    final AirQualityResponseDto dto = AirQualityResponseDto.fromJson(json);
+    final AirQualityCurrentDto? current = dto.current;
     if (current == null || current.usAqi == null) {
       throw const AqiServiceException(
         'Air quality data is unavailable for this location.',
@@ -130,6 +129,7 @@ class OpenMeteoService implements AqiService {
       observedAt: _parseTime(current.time),
       dominantPollutant: _dominantPollutant(current),
       pollutants: pollutants.isEmpty ? null : pollutants,
+      timezoneLabel: dto.timezoneAbbreviation,
     );
   }
 

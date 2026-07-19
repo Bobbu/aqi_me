@@ -159,7 +159,8 @@ class _CardBody extends StatelessWidget {
         const SizedBox(height: 8),
         if (meta.isNotEmpty) Text(meta, style: theme.textTheme.bodySmall),
         Text(
-          'as of ${formatClock(aqi.observedAt)}',
+          'as of ${formatClock(aqi.observedAt)}'
+          '${aqi.timezoneLabel == null ? '' : ' ${aqi.timezoneLabel}'}',
           style: theme.textTheme.bodySmall,
         ),
       ],

@@ -43,12 +43,16 @@ class GeocodingResultDto {
 
 @JsonSerializable(createToJson: false)
 class AirQualityResponseDto {
-  const AirQualityResponseDto({this.current});
+  const AirQualityResponseDto({this.current, this.timezoneAbbreviation});
 
   factory AirQualityResponseDto.fromJson(Map<String, dynamic> json) =>
       _$AirQualityResponseDtoFromJson(json);
 
   final AirQualityCurrentDto? current;
+
+  /// Offset-style zone label for the location, e.g. "GMT-6" (timezone=auto).
+  @JsonKey(name: 'timezone_abbreviation')
+  final String? timezoneAbbreviation;
 }
 
 @JsonSerializable(createToJson: false)

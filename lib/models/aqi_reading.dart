@@ -17,5 +17,8 @@ class AqiReading with _$AqiReading {
     required DateTime observedAt,
     String? dominantPollutant,
     Map<String, double>? pollutants,
+    // Offset-style zone label for [observedAt] (the location's local time),
+    // e.g. "GMT-6". Null when the provider doesn't report one.
+    String? timezoneLabel,
   }) = _AqiReading;
 }

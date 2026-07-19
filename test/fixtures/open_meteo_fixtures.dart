@@ -60,6 +60,7 @@ const String airQualityJson = '''
   "latitude": 39.75,
   "longitude": -105.0,
   "timezone": "America/Denver",
+  "timezone_abbreviation": "GMT-6",
   "current": {
     "time": "2026-07-18T14:00",
     "us_aqi": 78,
