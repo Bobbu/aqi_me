@@ -1,4 +1,4 @@
-# AQI.me — Product Requirements Document
+# AQI Me — Product Requirements Document
 
 **Status:** Shipped — v1 live at https://aqi-me.anystupididea.com
 **Author:** Robert Daly
@@ -8,7 +8,7 @@
 
 ## 1. Summary
 
-AQI.me is a single-page web app that lets **anonymous** users add up to **20 locations**
+AQI Me is a single-page web app that lets **anonymous** users add up to **20 locations**
 (by city / state / country name, or by raw GPS coordinates) and see the **current Air
 Quality Index (AQI)** for each — refreshed to within the last hour where the data source
 allows. Local temperature and local time are shown as nice-to-have secondary details.

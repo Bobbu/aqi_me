@@ -1,4 +1,4 @@
-# AQI.me
+# AQI Me
 
 A simple, beautiful one-page web app to track **current Air Quality Index (AQI)** for up
 to **20 locations** at once — added by city/state/country or GPS coordinates. No account,

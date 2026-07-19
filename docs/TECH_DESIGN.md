@@ -1,4 +1,4 @@
-# AQI.me — Technical Design Document
+# AQI Me — Technical Design Document
 
 **Status:** Shipped — live at https://aqi-me.anystupididea.com
 **Author:** Robert Daly
@@ -9,7 +9,7 @@
 
 ## 1. Overview
 
-Technical design for AQI.me: a **Flutter Web** single-page app that lets anonymous users
+Technical design for AQI Me: a **Flutter Web** single-page app that lets anonymous users
 track current AQI for up to 20 locations. The app is **client-only** — it calls the
 free, key-less **Open-Meteo** APIs directly from the browser, persists state per-device
 in the browser, and ships as **static files** on S3 + CloudFront, served at
@@ -478,6 +478,10 @@ TLS — with nothing manual in the console.
   one's height. `LocationCard` no longer hard-codes a width — it fills whatever the column
   gives it. (Note: plain `stretch` without `IntrinsicHeight` throws here, since the row's
   height is unbounded inside the scroll view.)
+- **Brand / title "AQI Me"** — the browser-tab and bookmark title is "AQI Me" (not
+  "AQI.me"). Set in `app.dart` (`MaterialApp.title`, which Flutter writes to
+  `document.title` at runtime — the authoritative source), plus `web/index.html`
+  (`<title>`, `apple-mobile-web-app-title`) and `web/manifest.json` (`name`/`short_name`).
 - **Sticky footer + tall-grid scroll** — the home page is a `CustomScrollView`: the content
   is one `SliverToBoxAdapter` at its full natural height (so a tall grid scrolls all the way
   to the last card), and a trailing `SliverFillRemaining(hasScrollBody: false)` pins the
@@ -487,7 +491,10 @@ TLS — with nothing manual in the console.
 - **Social preview** — Open Graph + Twitter card tags with a 1200×630 logo card
   (`web/og-image.png`) so pasted links render a rich preview.
 - **CI/CD** — `.github/workflows/deploy.yml` (analyze/test/build → `cdk deploy`) and
-  `infra/AqiMeCicdStack` (GitHub OIDC provider + scoped deploy role).
+  `infra/AqiMeCicdStack` (GitHub OIDC provider + scoped deploy role). Actions are pinned to
+  their Node 24-era majors — `actions/checkout@v5`, `actions/setup-node@v5`,
+  `aws-actions/configure-aws-credentials@v6` (v5 still ran on Node 20) — to stay clear of
+  the Node 20 runner deprecation.
 
 ### Operational learnings (worth remembering)
 
