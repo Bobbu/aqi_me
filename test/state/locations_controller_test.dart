@@ -27,7 +27,11 @@ void main() {
   late SharedPreferences prefs;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
+    // An explicit empty *saved* list — a returning user with nothing tracked,
+    // so defaults are NOT seeded (that path is covered separately below).
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'aqi_me.locations.v1': '[]',
+    });
     prefs = await SharedPreferences.getInstance();
   });
 
@@ -79,6 +83,39 @@ void main() {
     final List<Location> list = c.read(locationsControllerProvider);
     expect(list, hasLength(1));
     expect(list.single.id, 'id2');
+  });
+
+  test('seeds default locations on a first-ever visit', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final SharedPreferences fresh = await SharedPreferences.getInstance();
+    final ProviderContainer c = await _container(fresh);
+
+    final List<Location> seeded = c.read(locationsControllerProvider);
+    expect(seeded, hasLength(2));
+    expect(
+      seeded.map((Location l) => l.label),
+      containsAll(<String>['Washington D.C.', 'Lake Barrington']),
+    );
+  });
+
+  test('does not re-seed after the user empties the list', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final SharedPreferences fresh = await SharedPreferences.getInstance();
+
+    final ProviderContainer c1 = await _container(fresh);
+    final LocationsController ctrl = c1.read(
+      locationsControllerProvider.notifier,
+    );
+    for (final Location l in <Location>[
+      ...c1.read(locationsControllerProvider),
+    ]) {
+      ctrl.remove(l.id);
+    }
+    await Future<void>.delayed(Duration.zero);
+
+    // A fresh controller must respect the now-empty saved list.
+    final ProviderContainer c2 = await _container(fresh);
+    expect(c2.read(locationsControllerProvider), isEmpty);
   });
 
   test('persists across a fresh controller', () async {

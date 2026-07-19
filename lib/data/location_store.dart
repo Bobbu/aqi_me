@@ -13,6 +13,11 @@ class LocationStore {
 
   static const String _key = 'aqi_me.locations.v1';
 
+  /// Whether a list has ever been saved on this device. Distinguishes a
+  /// first-ever visit (seed defaults) from a user who has emptied their list
+  /// (respect it — no re-seeding).
+  bool get hasSavedList => _prefs.getString(_key) != null;
+
   /// Reads the saved list. Returns empty on first run or if the stored value is
   /// unreadable (corrupt data should never crash startup).
   List<Location> load() {

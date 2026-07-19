@@ -35,6 +35,14 @@ void main() {
     expect(store.load(), isEmpty);
   });
 
+  test('hasSavedList distinguishes first run from an emptied list', () async {
+    final LocationStore fresh = await _store(<String, Object>{});
+    expect(fresh.hasSavedList, isFalse);
+
+    await fresh.save(<Location>[]);
+    expect(fresh.hasSavedList, isTrue);
+  });
+
   test('round-trips the list through save/load', () async {
     final LocationStore store = await _store(<String, Object>{});
     await store.save(<Location>[_denver, _coords]);
