@@ -12,7 +12,9 @@ class AqiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      title: 'AQI.me',
+      // Flutter writes this to document.title at runtime (what a bookmark
+      // captures), so it must match the HTML <title> brand.
+      title: 'AQI Me',
       debugShowCheckedModeBanner: false,
       theme: AqiTheme.light(),
       darkTheme: AqiTheme.dark(),

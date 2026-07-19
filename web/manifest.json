@@ -1,6 +1,6 @@
 {
-    "name": "AQI.me — Air Quality at a glance",
-    "short_name": "AQI.me",
+    "name": "AQI Me — Air quality at a glance",
+    "short_name": "AQI Me",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0E1116",

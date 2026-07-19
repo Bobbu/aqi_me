@@ -235,26 +235,68 @@ class _ViewToggle extends ConsumerWidget {
   }
 }
 
-/// The reorderable card grid. Long-press a card and drop it onto another to
-/// reorder; the order is shared with the list view and persisted.
+/// The reorderable card grid. Drag a card's handle onto another to reorder; the
+/// order is shared with the list view and persisted.
+///
+/// Cards fill the available width in equal columns (1–3 depending on space) so
+/// the grid aligns to the outer margins with no ragged right edge, and every
+/// card in a row shares the tallest card's height.
 class _LocationGrid extends ConsumerWidget {
   const _LocationGrid({required this.locations});
 
   final List<Location> locations;
 
+  static const double _gap = 16;
+  static const double _minCardWidth = 260;
+  static const int _maxColumns = 3;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: <Widget>[
-        for (int i = 0; i < locations.length; i++)
-          _DraggableGridCard(
-            key: ValueKey<String>(locations[i].id),
-            location: locations[i],
-            index: i,
-          ),
-      ],
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double maxWidth = constraints.maxWidth;
+        final int columns = ((maxWidth + _gap) / (_minCardWidth + _gap))
+            .floor()
+            .clamp(1, _maxColumns);
+        final double cardWidth = (maxWidth - _gap * (columns - 1)) / columns;
+
+        final List<Widget> rows = <Widget>[];
+        for (int start = 0; start < locations.length; start += columns) {
+          if (rows.isNotEmpty) rows.add(const SizedBox(height: _gap));
+          final List<Widget> cells = <Widget>[];
+          for (int c = 0; c < columns; c++) {
+            if (c > 0) cells.add(const SizedBox(width: _gap));
+            final int index = start + c;
+            cells.add(
+              SizedBox(
+                width: cardWidth,
+                // Empty trailing slots keep the last row's cards left-aligned
+                // and the same width as the rows above.
+                child: index < locations.length
+                    ? _DraggableGridCard(
+                        key: ValueKey<String>(locations[index].id),
+                        location: locations[index],
+                        index: index,
+                        width: cardWidth,
+                      )
+                    : null,
+              ),
+            );
+          }
+          // IntrinsicHeight bounds the row to the tallest card, and stretch then
+          // makes every card in the row match that height. (Plain stretch alone
+          // throws here — the row's height is unbounded inside the scroll view.)
+          rows.add(
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: cells,
+              ),
+            ),
+          );
+        }
+        return Column(children: rows);
+      },
     );
   }
 }
@@ -263,11 +305,13 @@ class _DraggableGridCard extends ConsumerWidget {
   const _DraggableGridCard({
     required this.location,
     required this.index,
+    required this.width,
     super.key,
   });
 
   final Location location;
   final int index;
+  final double width;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -300,7 +344,7 @@ class _DraggableGridCard extends ConsumerWidget {
                     child: Opacity(
                       opacity: 0.92,
                       child: SizedBox(
-                        width: LocationCard.width,
+                        width: width,
                         child: LocationCard(location: location),
                       ),
                     ),

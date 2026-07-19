@@ -470,6 +470,14 @@ TLS — with nothing manual in the console.
   brightness on every visit.
 - **Wrapping card text** — long place names ("District of Columbia · United States") wrap
   instead of truncating with an ellipsis, on both the card and the list row.
+- **Responsive, aligned card grid** — `_LocationGrid` uses a `LayoutBuilder` to pick a
+  column count (1–3, by a ~260 px minimum card width) and computes an exact card width so
+  the grid always fills the content column and aligns to the outer margins (no ragged right
+  edge); on a phone it collapses to a single full-width column. Each row is an
+  `IntrinsicHeight` + `CrossAxisAlignment.stretch` so all cards in a row share the tallest
+  one's height. `LocationCard` no longer hard-codes a width — it fills whatever the column
+  gives it. (Note: plain `stretch` without `IntrinsicHeight` throws here, since the row's
+  height is unbounded inside the scroll view.)
 - **Sticky footer + tall-grid scroll** — the home page is a `CustomScrollView`: the content
   is one `SliverToBoxAdapter` at its full natural height (so a tall grid scrolls all the way
   to the last card), and a trailing `SliverFillRemaining(hasScrollBody: false)` pins the

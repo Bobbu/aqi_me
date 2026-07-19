@@ -17,8 +17,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class LocationCard extends ConsumerWidget {
   const LocationCard({required this.location, this.dragHandle, super.key});
 
-  static const double width = 240;
-
   final Location location;
 
   /// Optional drag affordance shown in the header (grid reordering).
@@ -35,7 +33,8 @@ class LocationCard extends ConsumerWidget {
     final Color spineColor = category?.solid ?? theme.colorScheme.outline;
 
     return Container(
-      width: width,
+      // Width comes from the parent (the grid column / list), so cards fill the
+      // available space and align to the outer margins.
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
