@@ -44,8 +44,10 @@ class OpenMeteoService implements AqiService {
     final String trimmed = query.trim();
     if (trimmed.isEmpty) return const <GeocodeResult>[];
 
-    // Split "City, State, Country" into the place name (searched) and region
-    // qualifiers (filtered locally — Open-Meteo only matches the bare name).
+    // Primary: split "City, State, Country" on commas into the place name
+    // (searched) and region qualifiers (filtered locally — Open-Meteo only
+    // matches the bare name).
+    final bool hasComma = trimmed.contains(',');
     final List<String> segments = trimmed
         .split(',')
         .map((String s) => s.trim())
@@ -53,6 +55,49 @@ class OpenMeteoService implements AqiService {
         .toList();
     final String name = segments.isEmpty ? trimmed : segments.first;
     final List<String> qualifiers = segments.skip(1).toList();
+    if (name.isEmpty) return const <GeocodeResult>[];
+
+    final List<GeocodeResult> primary = await _searchAndFilter(
+      name,
+      qualifiers,
+      requireMatch: false,
+    );
+    // Respect an explicit comma; only the comma-less "City ST" case falls back.
+    if (primary.isNotEmpty || hasComma) return primary;
+
+    // Fallback: no comma and no hits — the user may have typed "Greensboro GA".
+    // Peel a trailing region (1 then 2 words, e.g. "GA" or "North Carolina") off
+    // the end and retry as name + region; keep the first split that matches.
+    final List<String> tokens = trimmed
+        .split(RegExp(r'\s+'))
+        .where((String s) => s.isNotEmpty)
+        .toList();
+    for (int split = 1; split <= 2 && split < tokens.length; split++) {
+      final String candidate = tokens
+          .sublist(0, tokens.length - split)
+          .join(' ');
+      final String region = tokens.sublist(tokens.length - split).join(' ');
+      final List<GeocodeResult> retry = await _searchAndFilter(
+        candidate,
+        <String>[region],
+        requireMatch: true,
+      );
+      if (retry.isNotEmpty) return retry;
+    }
+
+    return primary;
+  }
+
+  /// Searches Open-Meteo geocoding for [name] and keeps candidates whose region
+  /// matches every [qualifiers] entry. With [requireMatch] false, an empty match
+  /// set falls back to the unfiltered results (so the user still sees
+  /// candidates); with it true, a non-match yields nothing (used by the
+  /// space-split fallback to avoid returning unrelated cities).
+  Future<List<GeocodeResult>> _searchAndFilter(
+    String name,
+    List<String> qualifiers, {
+    required bool requireMatch,
+  }) async {
     if (name.isEmpty) return const <GeocodeResult>[];
 
     final Map<String, dynamic> json = await _getJson(
@@ -66,11 +111,10 @@ class OpenMeteoService implements AqiService {
       },
     );
 
-    final GeocodingResponseDto dto = GeocodingResponseDto.fromJson(json);
     final List<GeocodingResultDto> results =
-        dto.results ?? const <GeocodingResultDto>[];
+        GeocodingResponseDto.fromJson(json).results ??
+        const <GeocodingResultDto>[];
 
-    // Keep only candidates whose region matches every qualifier the user typed.
     List<GeocodingResultDto> ranked = results;
     if (qualifiers.isNotEmpty) {
       final List<GeocodingResultDto> matched = results
@@ -85,9 +129,9 @@ class OpenMeteoService implements AqiService {
             ),
           )
           .toList();
-      // Fall back to the name-only results if nothing matched, so the user
-      // still sees candidates rather than a dead end.
-      ranked = matched.isNotEmpty ? matched : results;
+      ranked = matched.isNotEmpty
+          ? matched
+          : (requireMatch ? const <GeocodingResultDto>[] : results);
     }
 
     return <GeocodeResult>[

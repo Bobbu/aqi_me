@@ -104,6 +104,43 @@ void main() {
       expect(res, hasLength(4));
     });
 
+    test('"City ST" without a comma falls back to a region search', () async {
+      // Whole-string "Greensboro GA" misses; the bare "Greensboro" hits.
+      final OpenMeteoService service = OpenMeteoService(
+        dio: fakeDio((RequestOptions o) {
+          if (o.uri.host.contains('geocoding-api')) {
+            return o.uri.queryParameters['name'] == 'Greensboro'
+                ? const FakeResponse(200, geocodingGreensboroJson)
+                : const FakeResponse(200, geocodingEmptyJson);
+          }
+          return const FakeResponse(200, airQualityJson);
+        }),
+      );
+
+      final List<GeocodeResult> res = await service.geocode('Greensboro GA');
+      expect(res, hasLength(1));
+      expect(res.single.admin1, 'Georgia');
+    });
+
+    test('comma-less "City StateName" also falls back', () async {
+      final OpenMeteoService service = OpenMeteoService(
+        dio: fakeDio((RequestOptions o) {
+          if (o.uri.host.contains('geocoding-api')) {
+            return o.uri.queryParameters['name'] == 'Greensboro'
+                ? const FakeResponse(200, geocodingGreensboroJson)
+                : const FakeResponse(200, geocodingEmptyJson);
+          }
+          return const FakeResponse(200, airQualityJson);
+        }),
+      );
+
+      final List<GeocodeResult> res = await service.geocode(
+        'Greensboro North Carolina',
+      );
+      expect(res, hasLength(1));
+      expect(res.single.admin1, 'North Carolina');
+    });
+
     test('bare name is unaffected (no qualifier)', () async {
       final OpenMeteoService service = OpenMeteoService(
         dio: fakeDio((_) => const FakeResponse(200, geocodingWashingtonJson)),

@@ -33,6 +33,21 @@ const String geocodingDenverJson = '''
 
 const String geocodingEmptyJson = '{"generationtime_ms": 0.4}';
 
+/// Two "Greensboro" candidates (NC and GA) — used to test the comma-less
+/// "Greensboro GA" fallback.
+const String geocodingGreensboroJson = '''
+{
+  "results": [
+    {"id": 1, "name": "Greensboro", "latitude": 36.07264, "longitude": -79.79198,
+     "country_code": "US", "admin1": "North Carolina", "country": "United States",
+     "timezone": "America/New_York"},
+    {"id": 2, "name": "Greensboro", "latitude": 33.57624, "longitude": -83.18211,
+     "country_code": "US", "admin1": "Georgia", "country": "United States",
+     "timezone": "America/New_York"}
+  ]
+}
+''';
+
 /// Multiple "Washington" candidates across several states — used to test
 /// "City, State" region filtering.
 const String geocodingWashingtonJson = '''
