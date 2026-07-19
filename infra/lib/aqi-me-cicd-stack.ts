@@ -35,14 +35,20 @@ export class AqiMeCicdStack extends cdk.Stack {
       roleName: 'aqi-me-github-deploy',
       description: 'Assumed by GitHub Actions to deploy AqiMeStack via CDK',
       maxSessionDuration: cdk.Duration.hours(1),
+      // AWS requires a `sub` (or `job_workflow_ref`) condition on GitHub OIDC
+      // roles. This repo customizes its OIDC subject to embed numeric owner/repo
+      // IDs (e.g. "repo:Bobbu@426328/aqi_me@1305205082:ref:refs/heads/main"), so
+      // the sub is matched with wildcards for those IDs and pinned to main; the
+      // `repository` equality nails the identity.
       assumedBy: new iam.OpenIdConnectPrincipal(provider, {
         StringEquals: {
           'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
+          'token.actions.githubusercontent.com:repository':
+            `${githubOwner}/${githubRepo}`,
         },
-        // Only workflows running on the repo's main branch may assume it.
         StringLike: {
           'token.actions.githubusercontent.com:sub':
-            `repo:${githubOwner}/${githubRepo}:ref:refs/heads/main`,
+            `repo:${githubOwner}@*/${githubRepo}@*:ref:refs/heads/main`,
         },
       }),
     });
