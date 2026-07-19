@@ -1,0 +1,70 @@
+name: Deploy
+
+# Auto-deploy AQI.me to aqi-me.anystupididea.com on every push to main.
+# Auth is via GitHub OIDC assuming the aqi-me-github-deploy role (no stored keys);
+# the role ARN is provided as the AWS_DEPLOY_ROLE_ARN repo secret.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: id-token for OIDC, read-only checkout.
+permissions:
+  id-token: write
+  contents: read
+
+# Never run two deploys at once; let an in-flight one finish.
+concurrency:
+  group: deploy-aqi-me
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.6
+          cache: true
+
+      - name: Install Dart/Flutter deps
+        run: flutter pub get
+
+      - name: Code generation (freezed / json_serializable)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Format check (tracked files only)
+        run: dart format --output=none --set-exit-if-changed $(git ls-files '*.dart')
+
+      - name: Analyze (zero warnings gate)
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build web (release)
+        run: flutter build web --release
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install CDK deps
+        working-directory: infra
+        run: npm ci
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: CDK deploy
+        working-directory: infra
+        run: npx cdk deploy AqiMeStack --require-approval never
