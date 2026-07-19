@@ -100,16 +100,28 @@ export class AqiMeStack extends cdk.Stack {
       ],
     });
 
-    // Re-upload the entry point + service worker with no-cache so a new release
-    // is picked up immediately, then invalidate the edge caches. Runs after the
-    // bulk upload so these headers win.
+    // Re-upload Flutter's entry files with no-cache so a new release is picked
+    // up on the next load, then invalidate the edge caches. Runs after the bulk
+    // upload so these headers win.
+    //
+    // These files keep the SAME filename across builds (they are not content-
+    // hashed), so caching them as immutable strands returning visitors on an old
+    // build. Crucially, `flutter_bootstrap.js` carries the app/service-worker
+    // version pointer — if it is cached, the browser never detects new releases.
     const html = new s3deploy.BucketDeployment(this, 'DeployHtml', {
       sources: [s3deploy.Source.asset(webBundle)],
       destinationBucket: bucket,
       prune: false,
       memoryLimit: 1024,
       exclude: ['*', '*/**'],
-      include: ['index.html', 'flutter_service_worker.js', 'version.json'],
+      include: <string[]>[
+        'index.html',
+        'flutter_bootstrap.js',
+        'flutter.js',
+        'flutter_service_worker.js',
+        'main.dart.js',
+        'version.json',
+      ],
       cacheControl: [
         s3deploy.CacheControl.setPublic(),
         s3deploy.CacheControl.noCache(),
