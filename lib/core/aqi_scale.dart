@@ -65,6 +65,49 @@ extension AqiCategoryScale on AqiCategory {
     }
   }
 
+  /// The AQI range this category covers, e.g. "0–50" or "301+".
+  String get rangeLabel {
+    switch (this) {
+      case AqiCategory.good:
+        return '0–50';
+      case AqiCategory.moderate:
+        return '51–100';
+      case AqiCategory.unhealthySensitive:
+        return '101–150';
+      case AqiCategory.unhealthy:
+        return '151–200';
+      case AqiCategory.veryUnhealthy:
+        return '201–300';
+      case AqiCategory.hazardous:
+        return '301+';
+    }
+  }
+
+  /// A short plain-language health note for this category (US EPA guidance).
+  String get healthNote {
+    switch (this) {
+      case AqiCategory.good:
+        return 'Air quality is satisfactory; air pollution poses little or no '
+            'risk.';
+      case AqiCategory.moderate:
+        return 'Acceptable air quality, but some pollutants may affect a small '
+            'number of unusually sensitive people.';
+      case AqiCategory.unhealthySensitive:
+        return 'Sensitive groups — people with heart or lung disease, older '
+            'adults, children — may feel effects. The general public usually '
+            "won't.";
+      case AqiCategory.unhealthy:
+        return 'Some of the general public may feel effects; sensitive groups '
+            'may feel more serious effects.';
+      case AqiCategory.veryUnhealthy:
+        return 'Health alert: the risk of health effects is increased for '
+            'everyone.';
+      case AqiCategory.hazardous:
+        return 'Health warning of emergency conditions; everyone is more likely '
+            'to be affected.';
+    }
+  }
+
   /// The solid brand color for this category — used for the numeric readout,
   /// the card's color spine, badges, and the air-ribbon segment.
   Color get solid {

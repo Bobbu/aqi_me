@@ -111,17 +111,10 @@ class _Header extends ConsumerWidget {
             children: <Widget>[
               Text(
                 location.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
               ),
               if (subtitle.isNotEmpty)
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall,
-                ),
+                Text(subtitle, style: theme.textTheme.bodySmall),
             ],
           ),
         ),

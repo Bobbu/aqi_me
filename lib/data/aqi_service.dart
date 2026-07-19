@@ -38,3 +38,37 @@ const Map<String, String> kPollutantLabels = <String, String>{
   'so2': 'SO₂',
   'co': 'CO',
 };
+
+/// Full names for the pollutant codes (for the help/glossary).
+const Map<String, String> kPollutantNames = <String, String>{
+  'pm2_5': 'Fine particulate matter',
+  'pm10': 'Coarse particulate matter',
+  'o3': 'Ground-level ozone',
+  'no2': 'Nitrogen dioxide',
+  'so2': 'Sulfur dioxide',
+  'co': 'Carbon monoxide',
+};
+
+/// Plain-language descriptions for the pollutant codes (for the help/glossary).
+const Map<String, String> kPollutantDescriptions = <String, String>{
+  'pm2_5':
+      'Tiny particles (≤2.5 µm) from smoke, exhaust, and combustion — small '
+      'enough to reach deep into the lungs and bloodstream.',
+  'pm10': 'Coarser particles (≤10 µm) such as dust, pollen, and mold.',
+  'o3':
+      'Forms when pollutants react in sunlight; the main ingredient of smog. '
+      'Highest on hot, sunny afternoons.',
+  'no2': 'Mostly from vehicle exhaust and other high-temperature combustion.',
+  'so2': 'From burning fossil fuels at power plants and industrial facilities.',
+  'co': 'From incomplete combustion — vehicles, stoves, and heaters.',
+};
+
+/// Pollutant codes in display order, for the glossary.
+const List<String> kPollutantOrder = <String>[
+  'pm2_5',
+  'pm10',
+  'o3',
+  'no2',
+  'so2',
+  'co',
+];

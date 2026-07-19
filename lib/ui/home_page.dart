@@ -9,6 +9,7 @@ import 'package:aqi_me/ui/widgets/add_location_field.dart';
 import 'package:aqi_me/ui/widgets/air_ribbon.dart';
 import 'package:aqi_me/ui/widgets/app_footer.dart';
 import 'package:aqi_me/ui/widgets/empty_state.dart';
+import 'package:aqi_me/ui/widgets/help_sheet.dart';
 import 'package:aqi_me/ui/widgets/location_card.dart';
 import 'package:aqi_me/ui/widgets/location_row.dart';
 import 'package:flutter/material.dart';
@@ -198,6 +199,12 @@ class _Header extends ConsumerWidget {
             },
           ),
         ],
+        IconButton(
+          icon: const Icon(Icons.help_outline),
+          tooltip: 'What am I looking at?',
+          color: theme.colorScheme.onSurfaceVariant,
+          onPressed: () => showHelpSheet(context),
+        ),
         const _ThemeToggle(),
       ],
     );
