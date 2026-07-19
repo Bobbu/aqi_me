@@ -12,7 +12,7 @@ class EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 64),
       child: Column(
         children: <Widget>[
-          Icon(Icons.air, size: 44, color: theme.colorScheme.outline),
+          Icon(Icons.air, size: 44, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(height: 16),
           Text(
             'Add your first location',

@@ -120,7 +120,7 @@ class _ThemeToggle extends ConsumerWidget {
     return IconButton(
       icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
       tooltip: isDark ? 'Switch to light' : 'Switch to dark',
-      color: theme.colorScheme.outline,
+      color: theme.colorScheme.onSurfaceVariant,
       onPressed: () => ref.read(themeModeProvider.notifier).state = isDark
           ? ThemeMode.light
           : ThemeMode.dark,
@@ -174,7 +174,7 @@ class _Header extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh all',
-            color: theme.colorScheme.outline,
+            color: theme.colorScheme.onSurfaceVariant,
             onPressed: () {
               for (final Location location in locations) {
                 refreshLocation(ref, location);
@@ -200,7 +200,7 @@ class _ViewToggle extends ConsumerWidget {
     return IconButton(
       icon: Icon(isList ? Icons.grid_view_outlined : Icons.view_list_outlined),
       tooltip: isList ? 'Grid view' : 'List view',
-      color: theme.colorScheme.outline,
+      color: theme.colorScheme.onSurfaceVariant,
       onPressed: () => ref.read(viewModeProvider.notifier).toggle(),
     );
   }
@@ -250,34 +250,47 @@ class _DraggableGridCard extends ConsumerWidget {
       builder:
           (BuildContext context, List<int?> candidate, List<dynamic> rejected) {
             final bool hovering = candidate.isNotEmpty;
-            return LongPressDraggable<int>(
-              data: index,
-              feedback: Material(
-                color: Colors.transparent,
-                child: Opacity(
-                  opacity: 0.92,
-                  child: SizedBox(
-                    width: LocationCard.width,
-                    child: LocationCard(location: location),
-                  ),
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: hovering
+                      ? theme.colorScheme.onSurface
+                      : Colors.transparent,
+                  width: 2,
                 ),
               ),
-              childWhenDragging: Opacity(
-                opacity: 0.3,
-                child: LocationCard(location: location),
-              ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: hovering
-                        ? theme.colorScheme.onSurface
-                        : Colors.transparent,
-                    width: 2,
+              child: LocationCard(
+                location: location,
+                // Drag this handle onto another card to reorder.
+                dragHandle: Draggable<int>(
+                  data: index,
+                  feedback: Material(
+                    color: Colors.transparent,
+                    child: Opacity(
+                      opacity: 0.92,
+                      child: SizedBox(
+                        width: LocationCard.width,
+                        child: LocationCard(location: location),
+                      ),
+                    ),
+                  ),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.grab,
+                    child: Tooltip(
+                      message: 'Drag to reorder',
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.drag_indicator,
+                          size: 18,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                child: LocationCard(location: location),
               ),
             );
           },

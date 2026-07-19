@@ -73,6 +73,9 @@ abstract final class AqiTheme {
         ColorScheme.fromSeed(seedColor: ink, brightness: brightness).copyWith(
           surface: surface,
           onSurface: ink,
+          // Icons/secondary controls use onSurfaceVariant (muted) — readable in
+          // both themes. `outline` stays the faint hairline for borders/dividers.
+          onSurfaceVariant: muted,
           outline: hairline,
           outlineVariant: hairline,
         );

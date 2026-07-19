@@ -15,11 +15,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// loading / data / error state, with the air-tinted haze + color spine + mono
 /// readout signature (TECH_DESIGN §4.3).
 class LocationCard extends ConsumerWidget {
-  const LocationCard({required this.location, super.key});
+  const LocationCard({required this.location, this.dragHandle, super.key});
 
   static const double width = 240;
 
   final Location location;
+
+  /// Optional drag affordance shown in the header (grid reordering).
+  final Widget? dragHandle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,7 +63,7 @@ class LocationCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      _Header(location: location),
+                      _Header(location: location, dragHandle: dragHandle),
                       const SizedBox(height: 10),
                       reading.when(
                         data: (LocationReading r) =>
@@ -86,9 +89,10 @@ class LocationCard extends ConsumerWidget {
 }
 
 class _Header extends ConsumerWidget {
-  const _Header({required this.location});
+  const _Header({required this.location, this.dragHandle});
 
   final Location location;
+  final Widget? dragHandle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -118,6 +122,7 @@ class _Header extends ConsumerWidget {
             ],
           ),
         ),
+        ?dragHandle,
         _IconButton(
           icon: Icons.close,
           tooltip: 'Remove ${location.label}',
@@ -232,7 +237,7 @@ class _IconButton extends StatelessWidget {
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      color: Theme.of(context).colorScheme.outline,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
   }
 }

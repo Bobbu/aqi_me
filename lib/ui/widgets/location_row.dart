@@ -68,7 +68,7 @@ class LocationRow extends ConsumerWidget {
                           error: (_, _) => Icon(
                             Icons.error_outline,
                             size: 22,
-                            color: theme.colorScheme.outline,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -117,7 +117,7 @@ class LocationRow extends ConsumerWidget {
                           icon: const Icon(Icons.refresh, size: 18),
                           tooltip: 'Retry',
                           visualDensity: VisualDensity.compact,
-                          color: theme.colorScheme.outline,
+                          color: theme.colorScheme.onSurfaceVariant,
                           onPressed: () => refreshLocation(ref, location),
                         ),
                       ReorderableDragStartListener(
@@ -127,7 +127,7 @@ class LocationRow extends ConsumerWidget {
                           child: Icon(
                             Icons.drag_handle,
                             size: 20,
-                            color: theme.colorScheme.outline,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -135,7 +135,7 @@ class LocationRow extends ConsumerWidget {
                         icon: const Icon(Icons.close, size: 18),
                         tooltip: 'Remove ${location.label}',
                         visualDensity: VisualDensity.compact,
-                        color: theme.colorScheme.outline,
+                        color: theme.colorScheme.onSurfaceVariant,
                         onPressed: () => ref
                             .read(locationsControllerProvider.notifier)
                             .remove(location.id),
