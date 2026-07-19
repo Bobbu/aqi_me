@@ -183,8 +183,9 @@ lib/
   core/
     aqi_scale.dart              # AQI → category + solid/haze color (EPA, §4.1)
     theme.dart                  # chrome palette, typography, light/dark
-    result.dart                 # typed error/result helpers
-    coord_parser.dart          # detect & parse "lat, lon"
+    coord_parser.dart           # detect & parse "lat, lon"
+    formatters.dart             # temperature, time, "as of …" formatting
+    region_matching.dart        # US-state abbreviations + country synonyms; "City, ST"
   models/
     location.dart               # user-entered location (freezed)
     geocode_result.dart
@@ -192,26 +193,33 @@ lib/
     weather_reading.dart
     location_reading.dart       # composed: location + aqi + weather + local time
   data/
-    aqi_service.dart            # abstract interface (getAqi/geocode/getWeather)
+    aqi_service.dart            # abstract interface (getAqi/geocode/getWeather) + pollutant labels/glossary
     open_meteo/
-      open_meteo_service.dart
+      open_meteo_service.dart   # incl. comma-less "City ST" geocode fallback
       open_meteo_dtos.dart      # JSON DTOs (json_serializable)
     location_store.dart         # shared_preferences persistence
     location_repository.dart    # orchestration + caching
+    default_locations.dart      # first-run seed (Washington D.C. + Lake Barrington)
+    location_builders.dart      # build a Location from a geocode/coord result
   state/
+    providers.dart              # shared_preferences, service/repo wiring, persisted themeMode
     locations_controller.dart   # add/remove/reorder, enforces 20 cap
     reading_providers.dart      # per-location AsyncValue providers + refresh
+    view_mode.dart              # persisted grid/list toggle
+    tutorial.dart               # persisted "tutorial call-out dismissed" flag
   ui/
-    home_page.dart
+    home_page.dart              # header, add-field, ribbon, grid/list, sticky footer
     widgets/
       air_ribbon.dart           # §4.3 aggregate strip
       add_location_field.dart
       disambiguation_sheet.dart # pick among ambiguous geocode matches
-      location_card.dart        # spine + haze + mono readout (§4.3)
-      aqi_badge.dart
-      pollutant_details.dart
+      location_card.dart        # spine + haze + mono readout (§4.3), wrapping text
+      location_row.dart         # list-view equivalent of the card
+      animated_aqi_number.dart  # count-up readout
+      help_sheet.dart           # AQI-scale key + pollutant glossary + video link
+      tutorial_callout.dart     # dismissible how-to-video badge
+      app_footer.dart           # shared "Any Stupid Idea" footer
       empty_state.dart
-      error_card.dart
 ```
 
 ## 7. Data Model
@@ -365,17 +373,22 @@ TLS — with nothing manual in the console.
     single page serves all paths.
   - **`s3deploy.BucketDeployment`** uploads `build/web` and **invalidates** CloudFront on
     each deploy.
-  - Cache policy: long-cache hashed assets, **no-cache `index.html`** /
-    `flutter_service_worker.js` so releases go live immediately.
+  - Cache policy: long-cache hashed assets, but the **entry files are `no-cache`**
+    (`index.html`, `flutter_bootstrap.js`, `flutter.js`, `main.dart.js`, `version.json`)
+    so a normal reload always picks up a new release. The app ships **without a service
+    worker** (`--pwa-strategy=none`, see §13), which is what finally killed the recurring
+    stale-content problem.
 - **Prerequisite (satisfied ✓):** the **`anystupididea.com` hosted zone exists in this
   account's Route53**. CDK looks it up rather than creates it (registrar + apex zone are
   account-level and shared across your subdomains); everything else in the stack is fully
   reproducible.
 - **Deploy pipeline:**
   ```bash
-  flutter build web --release        # (choose renderer per §13)
+  flutter build web --release --pwa-strategy=none --no-tree-shake-icons
   cd infra && npm ci && cdk deploy    # hosting + DNS + TLS, uploads + invalidates
   ```
+  `--pwa-strategy=none` drops the service worker (§13); `--no-tree-shake-icons` ships the
+  full Material icon font so dynamically-referenced glyphs (e.g. the help icon) always render.
 - **Result:** visiting **`https://aqi-me.anystupididea.com`** loads the app — no install,
   no account. `cdk destroy` removes the bucket, distribution, cert, and DNS records
   (leaving the shared apex zone intact).
@@ -389,7 +402,11 @@ TLS — with nothing manual in the console.
 - If initial load is too heavy for a lightweight utility, evaluate the **HTML renderer**
   (or `skwasm`) — decision recorded here once measured.
 - Lazy-load pollutant detail; keep the 20-card grid virtualization-friendly.
-- Precache Flutter assets via the generated service worker for fast repeat visits.
+- **No service worker** (`--pwa-strategy=none`). Precaching via the generated Flutter
+  service worker was the root cause of persistent stale-content bugs (returning visitors
+  kept getting an old immutable bundle pointer). Dropping the SW and marking the entry
+  files `no-cache` (§12) means a plain reload always gets the current build; the small hit
+  to repeat-visit warm-start is well worth never serving a stale app again.
 
 ## 14. Testing & Quality Gates
 
@@ -432,11 +449,33 @@ TLS — with nothing manual in the console.
   (`google_fonts` removed), honoring the "only Open-Meteo outbound calls" goal (§15).
 - **Hourly auto-refresh** — `HomePage` timer + lifecycle catch-up on resume (§9.3).
 - **Grid / list views + reordering** — a persisted view toggle (`state/view_mode.dart`);
-  drag-and-drop reorder in both layouts (grid: `LongPressDraggable`/`DragTarget`; list:
-  `ReorderableListView`), sharing `LocationsController.reorder` and persisted.
+  drag-and-drop reorder in both layouts via a **visible drag handle** on each card/row
+  (grid: `Draggable`/`DragTarget`; list: `ReorderableListView` with custom handles),
+  sharing `LocationsController.reorder` and persisted.
 - **Named timezones** — each "as of" time shows the DST-aware zone abbreviation (EDT,
   CDT, MST, BST, …) derived from the IANA zone via the `timezone` package, with the
   provider's `GMT±x` label as fallback.
+- **Comma-less geocode fallback** — when a query like `Greensboro GA` has no comma and the
+  whole-string search misses, `OpenMeteoService` peels a trailing region (1 then 2 words)
+  off the end and retries as name + region, keeping only candidates whose admin1/country
+  match (`core/region_matching.dart`).
+- **Help sheet + pollutant glossary** — `ui/widgets/help_sheet.dart` is a modal key to the
+  AQI scale (ranges, categories, health notes) and the pollutant codes (PM2.5, PM10, O₃,
+  NO₂, SO₂, CO), with a link to the how-to video. Labels/descriptions live next to the
+  service interface (`data/aqi_service.dart`).
+- **Tutorial call-out** — a dismissible how-to-video badge (`ui/widgets/tutorial_callout.dart`),
+  its dismissed state persisted (`state/tutorial.dart`); also reachable from the help sheet.
+- **Persisted theme** — the light/dark choice is stored (`state/providers.dart`,
+  `ThemeModeController`) so it survives reloads, rather than falling back to the system
+  brightness on every visit.
+- **Wrapping card text** — long place names ("District of Columbia · United States") wrap
+  instead of truncating with an ellipsis, on both the card and the list row.
+- **Sticky footer + tall-grid scroll** — the home page is a `CustomScrollView`: the content
+  is one `SliverToBoxAdapter` at its full natural height (so a tall grid scrolls all the way
+  to the last card), and a trailing `SliverFillRemaining(hasScrollBody: false)` pins the
+  shared "Any Stupid Idea" footer (`ui/widgets/app_footer.dart`) to the bottom of the
+  viewport when the list is short. (Earlier single-sliver / `Spacer`-in-fill-remaining
+  variants either clipped tall content or floated the footer — see learnings below.)
 - **Social preview** — Open Graph + Twitter card tags with a 1200×630 logo card
   (`web/og-image.png`) so pasted links render a rich preview.
 - **CI/CD** — `.github/workflows/deploy.yml` (analyze/test/build → `cdk deploy`) and
@@ -451,10 +490,25 @@ TLS — with nothing manual in the console.
   owner/repo IDs (`repo:Bobbu@426328/aqi_me@1305205082:ref:...`), so the trust policy
   matches `sub` with wildcards for the IDs plus a `repository` equality check. AWS also
   requires a `sub`/`job_workflow_ref` condition on GitHub OIDC roles.
-- **Cache/releases:** static assets are immutable-cached; `index.html` +
-  `flutter_service_worker.js` are `no-cache` and every deploy invalidates CloudFront, so
-  new visitors get the update immediately and returning visitors update via the Flutter
-  service worker (version.json) on their next visit.
+- **Cache/releases (and why the service worker had to go):** static hashed assets are
+  immutable-cached, but the recurring "stale content" bug came from the generated Flutter
+  **service worker** — returning visitors kept booting an old cached bundle even after a
+  CloudFront invalidation. The fix that stuck: build with `--pwa-strategy=none` (no SW) and
+  mark the entry files `no-cache` (`index.html`, `flutter_bootstrap.js`, `flutter.js`,
+  `main.dart.js`, `version.json`). Now a normal reload always lands the current build. One
+  transition caveat: a visitor who already had the SW installed needs a single hard reload
+  (or a private window) to shed it, after which plain reloads suffice.
+- **Icon-font tree-shaking:** icons referenced only indirectly (e.g. the help icon added
+  after a cached build) can vanish because tree-shaking ships a subsetted font missing the
+  glyph. Build with `--no-tree-shake-icons` to ship the full Material icon font.
+- **Tall-grid scroll / sticky footer:** a single `SliverFillRemaining(hasScrollBody: false)`
+  wrapping the whole page (with a `Spacer`) forces content to the viewport height and clips
+  a grid taller than the viewport — it only scrolls part-way. Splitting into a
+  `SliverToBoxAdapter` (content, full height) + a trailing `SliverFillRemaining` (footer,
+  bottom-pinned) fixes both. Note when verifying in a CanvasKit app: the browser-extension
+  wheel and a synchronous burst of synthetic `wheel` events don't reliably drive Flutter's
+  internal scroll — space the events out (~40–50 ms apart) or the "no scroll" you observe
+  is a test artifact, not the app.
 
 ## 17. Technical Questions — resolved
 

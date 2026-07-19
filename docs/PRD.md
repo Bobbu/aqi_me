@@ -79,7 +79,9 @@ who wants a quick glance without creating an account.
 
 ### 6.4 Managing the list
 - Remove a location (X on the card).
-- Reorder is a nice-to-have, not required for v1.
+- **Reorder** by drag-and-drop (shipped — was a v1 nice-to-have), in both grid and list
+  views; order is persisted.
+- **Grid or list view**, toggled and persisted per device.
 - List persisted in `localStorage`; no server round-trip needed to restore it.
 
 ### 6.5 States & errors
@@ -163,10 +165,15 @@ design doc.)*
 ## 12. Shipped in v1 (beyond the core requirements)
 
 - **First-run defaults:** new visitors start with Washington D.C. and Lake Barrington, IL.
-- **"City, State" search:** e.g. `Chicago, IL`, `Washington, DC`, `London, UK`.
+- **"City, State" search:** e.g. `Chicago, IL`, `Washington, DC`, `London, UK` — with a
+  **comma-less fallback** so `Greensboro GA` also resolves.
 - **Named timezones:** each reading time shows its zone (e.g. *as of 2:00 AM EDT*).
-- **Light/dark toggle**, hourly auto-refresh, bundled fonts (fully self-contained),
-  and rich social-preview cards when the link is shared.
+- **Grid or list view** with **drag-and-drop reordering** (both persisted).
+- **Help sheet + pollutant glossary:** an in-app key to the AQI scale and pollutant codes
+  (PM2.5, PM10, O₃, NO₂, SO₂, CO), plus a dismissible how-to-video call-out.
+- **Persisted light/dark toggle**, hourly auto-refresh, wrapping card text (long place
+  names never truncate), a sticky footer, bundled fonts (fully self-contained), and rich
+  social-preview cards when the link is shared.
 - **One-click + automated deploys:** `cdk deploy` / `./deploy.sh`, and CI/CD on push.
 
 ## 13. Future Ideas (post-v1)
@@ -176,3 +183,6 @@ design doc.)*
 - Shareable/bookmarkable location lists via URL.
 - Map view alongside the card list.
 - Regional AQI index auto-selection; full pollutant breakdown on the card.
+- **Pollen levels — on ice.** Open-Meteo's pollen data is Europe-only; global coverage
+  would require a keyed provider (e.g. Google's Pollen API) plus a small proxy, which cuts
+  against the key-less / no-login design. Parked unless we want European-only coverage.

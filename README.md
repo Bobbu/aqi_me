@@ -10,13 +10,17 @@ no install: just visit the site.
 
 - Track up to 20 places; see current AQI (≤ 1 hour old), color-coded on the US EPA scale.
 - Add locations by name (*"Denver, CO"*, *"Chicago, IL"*, *"London, UK"*) or coordinates
-  (*`39.74, -104.99`*), with a disambiguation picker when a name is ambiguous.
+  (*`39.74, -104.99`*), with a disambiguation picker when a name is ambiguous. Missing the
+  comma is fine too — *"Greensboro GA"* resolves via a region fallback.
 - New visitors start with two example locations (Washington D.C. and Lake Barrington, IL).
 - Each card shows AQI + category, the dominant pollutant, temperature, and the reading
   time in the location's **named timezone** (e.g. *as of 2:00 AM EDT*).
 - An "air ribbon" summarizes all locations at a glance; auto-refreshes hourly.
 - **Grid or list view**, and **drag-and-drop reordering** — both persisted per device.
-- Light/dark theme toggle. Your list is saved locally, per device — nothing is sent to us.
+- A built-in **help sheet** explains the AQI scale and the pollutant codes (PM2.5, O₃, …),
+  plus a link to the how-to video.
+- **Persisted light/dark theme**. Your list is saved locally, per device — nothing is
+  sent to us.
 
 ## How it's built
 
@@ -46,6 +50,8 @@ Or just push to `main` and let CI/CD deploy it. See [infra/README.md](./infra/RE
 ## Status
 
 **Shipped and live** at https://aqi-me.anystupididea.com. All milestones (M0–M4) complete,
-plus follow-ups: city/state search, default locations, bundled fonts, hourly auto-refresh,
-named timezones, social-preview cards, and automated CI/CD. See the technical design doc
-for the full picture.
+plus follow-ups: city/state search (with a comma-less fallback), default locations, bundled
+fonts, hourly auto-refresh, named timezones, social-preview cards, grid/list views with
+drag-and-drop reordering, a help sheet + pollutant glossary, a how-to-video call-out, a
+persisted theme, a sticky footer, and automated CI/CD. See the technical design doc for the
+full picture.
