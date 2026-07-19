@@ -156,10 +156,10 @@ class _Header extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'AQI·ME',
+                'AQI Me',
                 style: theme.textTheme.headlineLarge?.copyWith(
                   fontSize: 30,
-                  letterSpacing: 1.5,
+                  letterSpacing: 0.5,
                 ),
               ),
               Text('Air quality at a glance', style: theme.textTheme.bodySmall),
