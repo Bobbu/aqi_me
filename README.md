@@ -15,6 +15,7 @@ no install: just visit the site.
 - Each card shows AQI + category, the dominant pollutant, temperature, and the reading
   time in the location's **named timezone** (e.g. *as of 2:00 AM EDT*).
 - An "air ribbon" summarizes all locations at a glance; auto-refreshes hourly.
+- **Grid or list view**, and **drag-and-drop reordering** — both persisted per device.
 - Light/dark theme toggle. Your list is saved locally, per device — nothing is sent to us.
 
 ## How it's built

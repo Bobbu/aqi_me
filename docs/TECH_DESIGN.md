@@ -431,6 +431,9 @@ TLS — with nothing manual in the console.
 - **Bundled fonts** — Space Grotesk / Inter / IBM Plex Mono shipped as OFL assets
   (`google_fonts` removed), honoring the "only Open-Meteo outbound calls" goal (§15).
 - **Hourly auto-refresh** — `HomePage` timer + lifecycle catch-up on resume (§9.3).
+- **Grid / list views + reordering** — a persisted view toggle (`state/view_mode.dart`);
+  drag-and-drop reorder in both layouts (grid: `LongPressDraggable`/`DragTarget`; list:
+  `ReorderableListView`), sharing `LocationsController.reorder` and persisted.
 - **Named timezones** — each "as of" time shows the DST-aware zone abbreviation (EDT,
   CDT, MST, BST, …) derived from the IANA zone via the `timezone` package, with the
   provider's `GMT±x` label as fallback.
