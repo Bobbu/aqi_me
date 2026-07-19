@@ -13,7 +13,10 @@ cd "$ROOT"
 # --pwa-strategy=none: no service worker. Combined with no-cache entry files
 # (see infra), this makes new deploys apply on a single reload — no SW-cache
 # staleness. (This app needs the network anyway, so offline caching is moot.)
-flutter build web --release --pwa-strategy=none
+# --no-tree-shake-icons: ship the full (stable) Material icon font instead of a
+# per-build subset, so newly-used icons can't go missing behind the immutable
+# font cache.
+flutter build web --release --pwa-strategy=none --no-tree-shake-icons
 
 echo "==> Deploying CDK stack"
 cd "$ROOT/infra"
