@@ -1,8 +1,8 @@
 # AQI.me — Product Requirements Document
 
-**Status:** Draft
+**Status:** Shipped — v1 live at https://aqi-me.anystupididea.com
 **Author:** Robert Daly
-**Last updated:** 2026-07-18
+**Last updated:** 2026-07-19
 
 ---
 
@@ -151,18 +151,28 @@ design doc.)*
 - App handles **20 locations** without noticeable jank.
 - **$0** infra cost at personal-use scale.
 
-## 11. Open Questions
+## 11. Decisions (were open questions)
 
-1. Front-end stack: Flutter Web or a lightweight JS/TS SPA?
-2. Auto-refresh cadence — 30 min vs. 60 min default?
-3. Do we show pollutant breakdown (PM2.5 etc.) in v1, or AQI-only?
-4. US AQI everywhere, or auto-pick regional index (US vs. European) by location?
-5. Any need for a shareable URL that encodes the location list (still no accounts)?
+1. **Front-end:** Flutter Web.
+2. **Auto-refresh cadence:** 60 min.
+3. **Pollutant breakdown:** show the dominant pollutant on each card (full breakdown is
+   post-v1).
+4. **Index:** US AQI everywhere; regional (US vs. European) auto-selection is post-v1.
+5. **Shareable URL:** deferred to post-v1.
 
-## 12. Future Ideas (post-v1)
+## 12. Shipped in v1 (beyond the core requirements)
+
+- **First-run defaults:** new visitors start with Washington D.C. and Lake Barrington, IL.
+- **"City, State" search:** e.g. `Chicago, IL`, `Washington, DC`, `London, UK`.
+- **Named timezones:** each reading time shows its zone (e.g. *as of 2:00 AM EDT*).
+- **Light/dark toggle**, hourly auto-refresh, bundled fonts (fully self-contained),
+  and rich social-preview cards when the link is shared.
+- **One-click + automated deploys:** `cdk deploy` / `./deploy.sh`, and CI/CD on push.
+
+## 13. Future Ideas (post-v1)
 
 - Threshold alerts / notifications.
 - Historical trends and short-term forecast.
 - Shareable/bookmarkable location lists via URL.
 - Map view alongside the card list.
-- Regional AQI index auto-selection.
+- Regional AQI index auto-selection; full pollutant breakdown on the card.

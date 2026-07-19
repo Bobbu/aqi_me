@@ -1,8 +1,8 @@
 # AQI.me — Technical Design Document
 
-**Status:** Draft
+**Status:** Shipped — live at https://aqi-me.anystupididea.com
 **Author:** Robert Daly
-**Last updated:** 2026-07-18
+**Last updated:** 2026-07-19
 **Related:** [PRD.md](./PRD.md)
 
 ---
@@ -408,26 +408,61 @@ TLS — with nothing manual in the console.
 - Location list stored **locally per device**; never transmitted to us.
 - No secrets in the client bundle (nothing to leak — key-less provider).
 
-## 16. Milestones
+## 16. Milestones — all shipped ✅
 
-1. **M0 – Scaffold:** Flutter Web project, lints, models, `aqi_scale`, theme tokens (§4),
-   CI analyze gate.
-2. **M1 – Data layer:** `OpenMeteoService` + repository + fixtures/tests.
-3. **M2 – Core UX:** add (coords/text/disambiguation), card grid, 20-cap, persistence.
-4. **M3 – Design & polish:** air-tinted cards + spine + haze, air ribbon, mono readout,
-   light/dark, refresh/caching, error/empty/stale states, temp + local time, reduced
-   motion.
-5. **M4 – Deploy:** CDK stack (S3 + CloudFront + OAC + Route53 + ACM), custom domain live
-   at `aqi-me.anystupididea.com`, GitHub Actions.
+1. **M0 – Scaffold** ✅ Flutter Web project, lints, models, `aqi_scale`, theme tokens (§4),
+   zero-warning analyze gate.
+2. **M1 – Data layer** ✅ `OpenMeteoService` + repository + fixtures/tests.
+3. **M2 – Core UX** ✅ add (coords/text/disambiguation), card grid, 20-cap, persistence.
+4. **M3 – Design & polish** ✅ air-tinted cards + spine + haze, air ribbon, mono readout,
+   count-up animation, light/dark toggle, refresh/caching, error/empty states, temp,
+   reduced motion, logo + favicon.
+5. **M4 – Deploy** ✅ CDK stack (S3 + CloudFront + OAC + Route53 + ACM), live at
+   `aqi-me.anystupididea.com`, GitHub Actions CI/CD (OIDC).
 
-## 17. Open Technical Questions
+### Shipped beyond the original plan
 
-1. Renderer: CanvasKit vs. HTML — pending a measured first-paint/bundle comparison.
-2. `dio` vs. `http` — lean `dio` for interceptor-based retry; confirm at M1.
-3. `shared_preferences` vs. `hive` for persistence — `shared_preferences` likely
-   sufficient for a ≤20-item JSON list.
-4. ~~Route53: is the `anystupididea.com` hosted zone already in this AWS account?~~
-   **Resolved (2026-07-18): yes** — the zone is in Route53, so `HostedZone.fromLookup`
-   works and the stack is fully reproducible.
-5. Concurrency limit for initial 20-location fetch — start at 4, tune against real
-   rate-limit behavior.
+- **City/State search** — split `"Chicago, IL"` into name + region; match region against
+  each candidate's admin1/country (US state abbreviations expanded, country synonyms).
+  See `core/region_matching.dart`.
+- **Default locations** — seed Washington D.C. + Lake Barrington, IL for first-time
+  visitors; never re-seeded once the user edits the list (`data/default_locations.dart`,
+  `LocationStore.hasSavedList`).
+- **Bundled fonts** — Space Grotesk / Inter / IBM Plex Mono shipped as OFL assets
+  (`google_fonts` removed), honoring the "only Open-Meteo outbound calls" goal (§15).
+- **Hourly auto-refresh** — `HomePage` timer + lifecycle catch-up on resume (§9.3).
+- **Named timezones** — each "as of" time shows the DST-aware zone abbreviation (EDT,
+  CDT, MST, BST, …) derived from the IANA zone via the `timezone` package, with the
+  provider's `GMT±x` label as fallback.
+- **Social preview** — Open Graph + Twitter card tags with a 1200×630 logo card
+  (`web/og-image.png`) so pasted links render a rich preview.
+- **CI/CD** — `.github/workflows/deploy.yml` (analyze/test/build → `cdk deploy`) and
+  `infra/AqiMeCicdStack` (GitHub OIDC provider + scoped deploy role).
+
+### Operational learnings (worth remembering)
+
+- **CDK `BucketDeployment` OOM:** the default 128 MB deploy Lambda runs out of memory
+  syncing the ~38 MB CanvasKit bundle, hanging the deploy. Fixed with `memoryLimit: 1024`
+  on both deployments (§12).
+- **GitHub OIDC custom subject:** this repo customizes its OIDC `sub` to embed numeric
+  owner/repo IDs (`repo:Bobbu@426328/aqi_me@1305205082:ref:...`), so the trust policy
+  matches `sub` with wildcards for the IDs plus a `repository` equality check. AWS also
+  requires a `sub`/`job_workflow_ref` condition on GitHub OIDC roles.
+- **Cache/releases:** static assets are immutable-cached; `index.html` +
+  `flutter_service_worker.js` are `no-cache` and every deploy invalidates CloudFront, so
+  new visitors get the update immediately and returning visitors update via the Flutter
+  service worker (version.json) on their next visit.
+
+## 17. Technical Questions — resolved
+
+1. **Renderer:** shipped on **CanvasKit** (the default). First paint is fine for this
+   utility and the haze/gradient renders crisply; no need to switch to the HTML renderer.
+2. **`dio` vs. `http`:** shipped **`dio`** (injectable, interceptor-friendly; tests use a
+   fake `HttpClientAdapter`).
+3. **Persistence:** shipped **`shared_preferences`** (a single JSON string) — plenty for a
+   ≤20-item list.
+4. **Route53:** yes — the `anystupididea.com` zone is in the account; `HostedZone.fromLookup`
+   makes the stack fully reproducible.
+5. **Fetch concurrency:** not throttled — each location's reading is an independent Riverpod
+   `FutureProvider`, comfortably within Open-Meteo fair-use for ≤20 locations. Revisit only
+   if rate-limiting appears.

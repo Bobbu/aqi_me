@@ -4,24 +4,38 @@ A simple, beautiful one-page web app to track **current Air Quality Index (AQI)*
 to **20 locations** at once — added by city/state/country or GPS coordinates. No account,
 no install: just visit the site.
 
-**Live:** https://aqi-me.anystupididea.com *(pending first deploy)*
+**Live:** https://aqi-me.anystupididea.com
 
 ## What it does
 
-- Track up to 20 places; see current AQI (≤ 1 hour old where available), color-coded on
-  the US EPA scale.
-- Add locations by name (*"Denver, CO"*) or coordinates (*`39.74, -104.99`*).
-- Temperature and local time shown per location (nice-to-haves).
-- Your list is saved locally, per device — nothing is sent to us.
+- Track up to 20 places; see current AQI (≤ 1 hour old), color-coded on the US EPA scale.
+- Add locations by name (*"Denver, CO"*, *"Chicago, IL"*, *"London, UK"*) or coordinates
+  (*`39.74, -104.99`*), with a disambiguation picker when a name is ambiguous.
+- New visitors start with two example locations (Washington D.C. and Lake Barrington, IL).
+- Each card shows AQI + category, the dominant pollutant, temperature, and the reading
+  time in the location's **named timezone** (e.g. *as of 2:00 AM EDT*).
+- An "air ribbon" summarizes all locations at a glance; auto-refreshes hourly.
+- Light/dark theme toggle. Your list is saved locally, per device — nothing is sent to us.
 
 ## How it's built
 
-- **Flutter Web** — single codebase, runs in the browser, nothing to install.
+- **Flutter Web** — single codebase, runs in the browser, nothing to install. Fonts are
+  bundled, so the only outbound calls are to Open-Meteo.
 - **[Open-Meteo](https://open-meteo.com/)** — free, key-less APIs for air quality,
   weather, and geocoding. No secrets in the app.
-- **AWS CDK (TypeScript)** — S3 + CloudFront + Route53 + ACM, one-click deploy to
-  `aqi-me.anystupididea.com`. `cdk deploy` builds it all from scorched earth;
-  `cdk destroy` tears it down.
+- **AWS CDK (TypeScript)** — private S3 + CloudFront (OAC) + Route53 + ACM, all in
+  `infra/`. `cdk deploy` builds everything from scorched earth; `cdk destroy` tears it
+  down. No console, no secrets.
+- **CI/CD** — every push to `main` runs analyze + tests + build and auto-deploys via
+  GitHub Actions using OIDC (no stored AWS keys). See [`.github/workflows/deploy.yml`].
+
+## Deploy
+
+```bash
+./deploy.sh          # build Flutter web + cdk deploy (one-click, local)
+```
+
+Or just push to `main` and let CI/CD deploy it. See [infra/README.md](./infra/README.md).
 
 ## Docs
 
@@ -30,5 +44,7 @@ no install: just visit the site.
 
 ## Status
 
-Early — docs complete, implementation scaffolding next. See the milestones in the
-technical design doc.
+**Shipped and live** at https://aqi-me.anystupididea.com. All milestones (M0–M4) complete,
+plus follow-ups: city/state search, default locations, bundled fonts, hourly auto-refresh,
+named timezones, social-preview cards, and automated CI/CD. See the technical design doc
+for the full picture.

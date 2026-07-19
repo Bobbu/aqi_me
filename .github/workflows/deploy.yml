@@ -7,6 +7,11 @@ name: Deploy
 on:
   push:
     branches: [main]
+    # Docs-only changes don't affect the built site — skip the deploy.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   workflow_dispatch:
 
 # Least privilege: id-token for OIDC, read-only checkout.
