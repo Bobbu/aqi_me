@@ -24,15 +24,18 @@ doc/api/
 .metadata.local
 
 # ===== AWS CDK / Node (infra/) =====
+# NOTE: gitignore does not support inline comments — patterns must stand alone.
 node_modules/
 infra/cdk.out/
 cdk.out/
-*.d.ts                  # compiled from CDK TypeScript
+# Compiled CDK output (source is *.ts; we run via ts-node)
+*.d.ts
 *.js.map
-infra/*.js              # compiled CDK output (source is *.ts)
-!infra/jest.config.js   # keep hand-written JS config
+infra/*.js
 .cdk.staging/
-cdk.context.json        # cached account/zone lookups — machine-specific
+# Cached account/zone lookups — machine/account-specific, keep out of the repo
+cdk.context.json
+**/cdk.context.json
 
 # ===== Secrets / env (belt-and-suspenders; app is key-less) =====
 .env

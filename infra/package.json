@@ -1,0 +1,27 @@
+{
+  "name": "aqi-me-infra",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AWS CDK stack that hosts AQI.me at aqi-me.anystupididea.com",
+  "bin": {
+    "aqi-me": "bin/aqi_me.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy",
+    "diff": "cdk diff"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "aws-cdk": "^2.160.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.5.4"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.160.0",
+    "constructs": "^10.3.0"
+  }
+}
