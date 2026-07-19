@@ -12,6 +12,7 @@ import 'package:aqi_me/ui/widgets/empty_state.dart';
 import 'package:aqi_me/ui/widgets/help_sheet.dart';
 import 'package:aqi_me/ui/widgets/location_card.dart';
 import 'package:aqi_me/ui/widgets/location_row.dart';
+import 'package:aqi_me/ui/widgets/tutorial_callout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -89,6 +90,7 @@ class _HomePageState extends ConsumerState<HomePage>
                             _Header(locations: locations),
                             const SizedBox(height: 20),
                             const AddLocationField(),
+                            const TutorialCallout(),
                             const SizedBox(height: 20),
                             if (locations.isEmpty)
                               const EmptyState()

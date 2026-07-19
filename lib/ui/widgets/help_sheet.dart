@@ -1,5 +1,6 @@
 import 'package:aqi_me/core/aqi_scale.dart';
 import 'package:aqi_me/data/aqi_service.dart';
+import 'package:aqi_me/ui/widgets/tutorial_callout.dart';
 import 'package:flutter/material.dart';
 
 /// Shows the help/key sheet: the AQI scale (ranges, colors, health notes) and a
@@ -34,7 +35,33 @@ class _HelpSheet extends StatelessWidget {
                 'Air Quality Index',
                 style: theme.textTheme.titleLarge?.copyWith(fontSize: 22),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: openTutorialVideo,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(
+                        Icons.play_circle_fill,
+                        size: 22,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Watch the how-to video',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
                 'AQI summarizes air quality on a 0–500 scale — lower is cleaner. '
                 'Each location is colored by its category:',
