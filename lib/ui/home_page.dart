@@ -7,6 +7,7 @@ import 'package:aqi_me/state/reading_providers.dart';
 import 'package:aqi_me/state/view_mode.dart';
 import 'package:aqi_me/ui/widgets/add_location_field.dart';
 import 'package:aqi_me/ui/widgets/air_ribbon.dart';
+import 'package:aqi_me/ui/widgets/app_footer.dart';
 import 'package:aqi_me/ui/widgets/empty_state.dart';
 import 'package:aqi_me/ui/widgets/location_card.dart';
 import 'package:aqi_me/ui/widgets/location_row.dart';
@@ -90,6 +91,8 @@ class _HomePageState extends ConsumerState<HomePage>
                     else
                       _LocationGrid(locations: locations),
                   ],
+                  const SizedBox(height: 24),
+                  const Center(child: AppFooter()),
                 ],
               ),
             ),
