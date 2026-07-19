@@ -121,9 +121,9 @@ class _ThemeToggle extends ConsumerWidget {
       icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
       tooltip: isDark ? 'Switch to light' : 'Switch to dark',
       color: theme.colorScheme.onSurfaceVariant,
-      onPressed: () => ref.read(themeModeProvider.notifier).state = isDark
-          ? ThemeMode.light
-          : ThemeMode.dark,
+      onPressed: () => ref
+          .read(themeModeProvider.notifier)
+          .set(isDark ? ThemeMode.light : ThemeMode.dark),
     );
   }
 }
