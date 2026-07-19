@@ -59,6 +59,7 @@ class LocationRow extends ConsumerWidget {
                       SizedBox(
                         width: 58,
                         child: reading.when(
+                          skipLoadingOnRefresh: false,
                           data: (LocationReading r) => AnimatedAqiNumber(
                             value: r.aqi.usAqi,
                             color: r.aqi.category.solid,
@@ -88,6 +89,7 @@ class LocationRow extends ConsumerWidget {
                             ),
                             const SizedBox(height: 2),
                             reading.when(
+                              skipLoadingOnRefresh: false,
                               data: (LocationReading r) => Text(
                                 _detail(r),
                                 maxLines: 1,

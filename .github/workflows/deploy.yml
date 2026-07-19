@@ -53,7 +53,7 @@ jobs:
         run: flutter test
 
       - name: Build web (release)
-        run: flutter build web --release
+        run: flutter build web --release --pwa-strategy=none
 
       - name: Set up Node
         uses: actions/setup-node@v4

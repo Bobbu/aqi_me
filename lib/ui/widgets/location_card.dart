@@ -66,6 +66,9 @@ class LocationCard extends ConsumerWidget {
                       _Header(location: location, dragHandle: dragHandle),
                       const SizedBox(height: 10),
                       reading.when(
+                        // Flash the loading state on manual/auto refresh so it's
+                        // visible that a re-fetch happened.
+                        skipLoadingOnRefresh: false,
                         data: (LocationReading r) =>
                             _CardBody(reading: r, theme: theme),
                         loading: () => const _CardLoading(),

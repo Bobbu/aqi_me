@@ -10,7 +10,10 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 echo "==> Building Flutter web (release)"
 cd "$ROOT"
-flutter build web --release
+# --pwa-strategy=none: no service worker. Combined with no-cache entry files
+# (see infra), this makes new deploys apply on a single reload — no SW-cache
+# staleness. (This app needs the network anyway, so offline caching is moot.)
+flutter build web --release --pwa-strategy=none
 
 echo "==> Deploying CDK stack"
 cd "$ROOT/infra"
