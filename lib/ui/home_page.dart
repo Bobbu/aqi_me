@@ -71,47 +71,50 @@ class _HomePageState extends ConsumerState<HomePage>
 
     return Scaffold(
       body: SafeArea(
-        // Sticky footer: content anchors to the top and scrolls when tall; the
-        // footer sits at the bottom of the viewport when content is short.
+        // Sticky footer done right: the content is its own sliver (full natural
+        // height, so it always scrolls), and a second sliver bottom-pins the
+        // footer when content is short — without clipping tall content.
         child: CustomScrollView(
           slivers: <Widget>[
-            SliverFillRemaining(
+            SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 960),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        _Header(locations: locations),
+                        const SizedBox(height: 20),
+                        const AddLocationField(),
+                        const TutorialCallout(),
+                        const SizedBox(height: 20),
+                        if (locations.isEmpty)
+                          const EmptyState()
+                        else ...<Widget>[
+                          AirRibbon(locations: locations),
+                          const SizedBox(height: 24),
+                          if (ref.watch(viewModeProvider) == ViewMode.list)
+                            _LocationList(locations: locations)
+                          else
+                            _LocationGrid(locations: locations),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SliverFillRemaining(
               hasScrollBody: false,
               child: Column(
                 children: <Widget>[
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 960),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            _Header(locations: locations),
-                            const SizedBox(height: 20),
-                            const AddLocationField(),
-                            const TutorialCallout(),
-                            const SizedBox(height: 20),
-                            if (locations.isEmpty)
-                              const EmptyState()
-                            else ...<Widget>[
-                              AirRibbon(locations: locations),
-                              const SizedBox(height: 24),
-                              if (ref.watch(viewModeProvider) == ViewMode.list)
-                                _LocationList(locations: locations)
-                              else
-                                _LocationGrid(locations: locations),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                   // Minimum breathing room, then push the footer to the bottom.
-                  const SizedBox(height: 48),
-                  const Spacer(),
-                  const Center(child: AppFooter()),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 48),
+                  Spacer(),
+                  Center(child: AppFooter()),
+                  SizedBox(height: 8),
                 ],
               ),
             ),
