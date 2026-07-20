@@ -44,7 +44,9 @@ class AqiScaleBar extends ConsumerWidget {
     final AqiCategory category = aqiCategoryFor(aqi);
     final int i = values.indexOf(category);
     final int lower = category.lowerBound;
-    final int upper = i + 1 < values.length ? values[i + 1].lowerBound - 1 : 500;
+    final int upper = i + 1 < values.length
+        ? values[i + 1].lowerBound - 1
+        : 500;
     final double within = ((aqi - lower) / (upper - lower)).clamp(0.0, 1.0);
     return (i + within) / values.length;
   }
