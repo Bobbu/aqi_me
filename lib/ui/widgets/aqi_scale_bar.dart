@@ -1,6 +1,7 @@
 import 'package:aqi_me/core/aqi_scale.dart';
 import 'package:aqi_me/models/location.dart';
 import 'package:aqi_me/models/location_reading.dart';
+import 'package:aqi_me/state/card_anchors.dart';
 import 'package:aqi_me/state/reading_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,18 +12,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// sit on the scale — and relative to each other — so a glance answers "how bad,
 /// and how close to the next category?" (see the "air ribbon" discussion).
 ///
-/// Wide layouts add the category labels beneath the bar; narrow layouts drop
-/// them to stay slim. Each dot carries a tooltip (name · AQI · category).
+/// Reading a dot:
+/// - **Tap / click** a dot to scroll to that location's card (the mobile-
+///   friendly identity path, since labels and hover tooltips are limited there).
+/// - **Hover / long-press** shows a tooltip (name · AQI · category).
+///
+/// Wide layouts label all six category bands beneath the bar; narrow layouts
+/// show just the "Good" and "Hazardous" endpoints so the scale still reads.
 class AqiScaleBar extends ConsumerWidget {
   const AqiScaleBar({required this.locations, super.key});
 
   final List<Location> locations;
 
-  /// Below this content width we hide the category labels.
+  /// Below this content width we collapse the six band labels to the endpoints.
   static const double _wideThreshold = 560;
   static const double _barHeight = 12;
   static const double _dot = 13;
   static const double _rowGap = 4;
+
+  /// Touch target around each dot (larger than the dot itself for tappability).
+  static const double _hit = 30;
 
   /// Compact category names for the under-bar legend (the full labels are too
   /// long for a sixth of the bar).
@@ -55,6 +64,10 @@ class AqiScaleBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (locations.isEmpty) return const SizedBox.shrink();
     final ThemeData theme = Theme.of(context);
+    final TextStyle? labelStyle = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+      letterSpacing: 0.2,
+    );
 
     // Collect the resolved readings; unresolved locations simply have no dot yet.
     final List<_Marker> markers = <_Marker>[];
@@ -74,11 +87,27 @@ class AqiScaleBar extends ConsumerWidget {
       }
     }
 
+    // Scroll a location's card into view when its dot is tapped.
+    void revealCard(String id) {
+      final BuildContext? cardContext = ref
+          .read(cardAnchorsProvider)[id]
+          ?.currentContext;
+      if (cardContext != null) {
+        Scrollable.ensureVisible(
+          cardContext,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+          alignment: 0.1,
+        );
+      }
+    }
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double width = constraints.maxWidth;
         final bool wide = width >= _wideThreshold;
         final int rows = _assignRows(markers, width);
+        const double rowStride = _dot + _rowGap;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,45 +130,53 @@ class AqiScaleBar extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: SizedBox(
-                height: rows * (_dot + _rowGap),
+                height: (rows - 1) * rowStride + _hit,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: <Widget>[
                     for (final _Marker m in markers)
                       Positioned(
-                        left: (m.fraction * width - _dot / 2).clamp(
+                        left: (m.fraction * width - _hit / 2).clamp(
                           0.0,
-                          width - _dot,
+                          width - _hit,
                         ),
-                        top: m.row * (_dot + _rowGap),
-                        child: _Dot(marker: m, theme: theme),
+                        top: m.row * rowStride,
+                        child: _Dot(
+                          marker: m,
+                          theme: theme,
+                          onTap: () => revealCard(m.location.id),
+                        ),
                       ),
                   ],
                 ),
               ),
             ),
-            if (wide)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Row(
-                  children: <Widget>[
-                    for (final String label in _bandLabels)
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              letterSpacing: 0.2,
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: wide
+                  ? Row(
+                      children: <Widget>[
+                        for (final String label in _bandLabels)
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: labelStyle,
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text('Good', style: labelStyle),
+                        Text('Hazardous', style: labelStyle),
+                      ],
+                    ),
+            ),
           ],
         );
       },
@@ -188,23 +225,40 @@ class _Marker {
 }
 
 class _Dot extends StatelessWidget {
-  const _Dot({required this.marker, required this.theme});
+  const _Dot({required this.marker, required this.theme, required this.onTap});
 
   final _Marker marker;
   final ThemeData theme;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message:
-          '${marker.location.label} · ${marker.aqi} · ${marker.category.shortLabel}',
-      child: Container(
-        width: AqiScaleBar._dot,
-        height: AqiScaleBar._dot,
-        decoration: BoxDecoration(
-          color: marker.category.solid,
-          shape: BoxShape.circle,
-          border: Border.all(color: theme.colorScheme.surface, width: 1.5),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Tooltip(
+          message:
+              '${marker.location.label} · ${marker.aqi} · ${marker.category.shortLabel}',
+          child: SizedBox(
+            width: AqiScaleBar._hit,
+            height: AqiScaleBar._hit,
+            child: Center(
+              child: Container(
+                width: AqiScaleBar._dot,
+                height: AqiScaleBar._dot,
+                decoration: BoxDecoration(
+                  color: marker.category.solid,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: theme.colorScheme.surface,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

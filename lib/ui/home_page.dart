@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:aqi_me/models/location.dart';
+import 'package:aqi_me/state/card_anchors.dart';
 import 'package:aqi_me/state/locations_controller.dart';
 import 'package:aqi_me/state/providers.dart';
 import 'package:aqi_me/state/reading_providers.dart';
@@ -267,12 +268,15 @@ class _LocationGrid extends ConsumerWidget {
           for (int c = 0; c < columns; c++) {
             if (c > 0) cells.add(const SizedBox(width: _gap));
             final int index = start + c;
+            final bool hasCard = index < locations.length;
             cells.add(
               SizedBox(
+                // Anchor the cell so a tapped scale-bar dot can scroll here.
+                key: hasCard ? cardAnchorKey(ref, locations[index].id) : null,
                 width: cardWidth,
                 // Empty trailing slots keep the last row's cards left-aligned
                 // and the same width as the rows above.
-                child: index < locations.length
+                child: hasCard
                     ? _DraggableGridCard(
                         key: ValueKey<String>(locations[index].id),
                         location: locations[index],
@@ -393,7 +397,11 @@ class _LocationList extends ConsumerWidget {
       itemBuilder: (BuildContext context, int i) => Padding(
         key: ValueKey<String>(locations[i].id),
         padding: const EdgeInsets.only(bottom: 12),
-        child: LocationRow(location: locations[i], index: i),
+        // Anchor the row so a tapped scale-bar dot can scroll here.
+        child: KeyedSubtree(
+          key: cardAnchorKey(ref, locations[i].id),
+          child: LocationRow(location: locations[i], index: i),
+        ),
       ),
     );
   }
