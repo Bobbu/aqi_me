@@ -120,16 +120,19 @@ eyebrow/label 11–12px uppercase, +0.08em tracking.
    for Good, *dense and smoggy* for Hazardous — so worse air literally looks heavier. A
    thin vertical **color spine** on the card's leading edge encodes category for fast
    scanning across 20 cards.
-2. **The air ribbon.** A slim horizontal strip at the top of the page — one segment per
-   tracked location, in its category color — giving an at-a-glance spectrum of your whole
-   world's air before you read a single number.
+2. **The AQI scale bar.** A slim green→maroon gradient across the six EPA categories at the
+   top of the page, with each tracked location plotted as a dot at its current value
+   (stacked when several cluster). A glance shows where your places sit on the scale — and
+   relative to each other — before you read a single number. (This replaced the original
+   "air ribbon," one flat segment per location, which showed category but no scale or
+   magnitude; the widget is kept as `air_ribbon.dart` behind a one-line seam.)
 
 ### 4.4 Layout (ASCII wireframe)
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
 │  AQI·ME                                        ☀/☾   ⟳ refresh  │  ← quiet chrome header
-│  ▓▓▓░░░▓▓▓▓▒▒▒░░░  (air ribbon: per-location category colors)   │
+│  🟢🟢─🟡🟡🟡──🟠────────────  (AQI scale bar: dots = locations)   │
 ├───────────────────────────────────────────────────────────────┤
 │  [ add a city, or  39.74, -104.99            ]        12 / 20   │  ← single smart input
 │                                                                 │
@@ -208,9 +211,10 @@ lib/
     view_mode.dart              # persisted grid/list toggle
     tutorial.dart               # persisted "tutorial call-out dismissed" flag
   ui/
-    home_page.dart              # header, add-field, ribbon, grid/list, sticky footer
+    home_page.dart              # header, add-field, scale bar, grid/list, sticky footer
     widgets/
-      air_ribbon.dart           # §4.3 aggregate strip
+      aqi_scale_bar.dart        # §4.3 aggregate: locations plotted on the AQI gradient
+      air_ribbon.dart           # the original per-location strip (unused; kept as a seam)
       add_location_field.dart
       disambiguation_sheet.dart # pick among ambiguous geocode matches
       location_card.dart        # spine + haze + mono readout (§4.3), wrapping text
@@ -431,9 +435,9 @@ TLS — with nothing manual in the console.
    zero-warning analyze gate.
 2. **M1 – Data layer** ✅ `OpenMeteoService` + repository + fixtures/tests.
 3. **M2 – Core UX** ✅ add (coords/text/disambiguation), card grid, 20-cap, persistence.
-4. **M3 – Design & polish** ✅ air-tinted cards + spine + haze, air ribbon, mono readout,
-   count-up animation, light/dark toggle, refresh/caching, error/empty states, temp,
-   reduced motion, logo + favicon.
+4. **M3 – Design & polish** ✅ air-tinted cards + spine + haze, the aggregate air view
+   (air ribbon, later the AQI scale bar), mono readout, count-up animation, light/dark
+   toggle, refresh/caching, error/empty states, temp, reduced motion, logo + favicon.
 5. **M4 – Deploy** ✅ CDK stack (S3 + CloudFront + OAC + Route53 + ACM), live at
    `aqi-me.anystupididea.com`, GitHub Actions CI/CD (OIDC).
 
@@ -478,6 +482,12 @@ TLS — with nothing manual in the console.
   one's height. `LocationCard` no longer hard-codes a width — it fills whatever the column
   gives it. (Note: plain `stretch` without `IntrinsicHeight` throws here, since the row's
   height is unbounded inside the scroll view.)
+- **AQI scale bar** (`ui/widgets/aqi_scale_bar.dart`) — replaced the flat per-location "air
+  ribbon" with a green→maroon gradient over the six EPA categories, each location plotted as
+  a dot at its value. Positioning uses **equal-width category bands** (so the common 0–150
+  range isn't crushed against the left), with greedy vertical stacking when dots cluster,
+  category labels beneath the bar in wide layouts, and a per-dot tooltip. The old
+  `air_ribbon.dart` is kept unused so a future view-style toggle is a one-line swap.
 - **Brand / title "AQI Me"** — the browser-tab and bookmark title is "AQI Me" (not
   "AQI.me"). Set in `app.dart` (`MaterialApp.title`, which Flutter writes to
   `document.title` at runtime — the authoritative source), plus `web/index.html`

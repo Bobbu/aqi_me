@@ -15,7 +15,9 @@ no install: just visit the site.
 - New visitors start with two example locations (Washington D.C. and Lake Barrington, IL).
 - Each card shows AQI + category, the dominant pollutant, temperature, and the reading
   time in the location's **named timezone** (e.g. *as of 2:00 AM EDT*).
-- An "air ribbon" summarizes all locations at a glance; auto-refreshes hourly.
+- An **AQI scale bar** plots every location as a dot on a green→maroon gradient, so a
+  glance shows where each place sits on the scale and relative to the others; refreshes
+  hourly.
 - **Grid or list view**, and **drag-and-drop reordering** — both persisted per device.
 - A built-in **help sheet** explains the AQI scale and the pollutant codes (PM2.5, O₃, …),
   plus a link to the how-to video.
