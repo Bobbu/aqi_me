@@ -134,17 +134,15 @@ class _ThemeToggle extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = Theme.of(context);
     final ThemeMode mode = ref.watch(themeModeProvider);
     final bool platformDark =
         MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     final bool isDark =
         mode == ThemeMode.dark || (mode == ThemeMode.system && platformDark);
 
-    return IconButton(
-      icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+    return _HeaderIcon(
+      icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
       tooltip: isDark ? 'Switch to light' : 'Switch to dark',
-      color: theme.colorScheme.onSurfaceVariant,
       onPressed: () => ref
           .read(themeModeProvider.notifier)
           .set(isDark ? ThemeMode.light : ThemeMode.dark),
@@ -160,6 +158,9 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    // Phones can't fit the 30px title plus the logo, count, and action icons on
+    // one row, so shrink the title on narrow widths and keep it to a line.
+    final bool narrow = MediaQuery.sizeOf(context).width < 480;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
@@ -179,12 +180,20 @@ class _Header extends ConsumerWidget {
             children: <Widget>[
               Text(
                 'AQI Me',
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.headlineLarge?.copyWith(
-                  fontSize: 30,
+                  fontSize: narrow ? 24 : 30,
                   letterSpacing: 0.5,
                 ),
               ),
-              Text('Air quality at a glance', style: theme.textTheme.bodySmall),
+              Text(
+                'Air quality at a glance',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall,
+              ),
             ],
           ),
         ),
@@ -193,12 +202,11 @@ class _Header extends ConsumerWidget {
             '${locations.length} / ${LocationsController.maxLocations}',
             style: theme.textTheme.labelSmall,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           const _ViewToggle(),
-          IconButton(
-            icon: const Icon(Icons.refresh),
+          _HeaderIcon(
+            icon: Icons.refresh,
             tooltip: 'Refresh all',
-            color: theme.colorScheme.onSurfaceVariant,
             onPressed: () {
               for (final Location location in locations) {
                 refreshLocation(ref, location);
@@ -206,14 +214,40 @@ class _Header extends ConsumerWidget {
             },
           ),
         ],
-        IconButton(
-          icon: const Icon(Icons.help_outline),
+        _HeaderIcon(
+          icon: Icons.help_outline,
           tooltip: 'What am I looking at?',
-          color: theme.colorScheme.onSurfaceVariant,
           onPressed: () => showHelpSheet(context),
         ),
         const _ThemeToggle(),
       ],
+    );
+  }
+}
+
+/// A compact icon button sized to keep the header on one row on phones.
+class _HeaderIcon extends StatelessWidget {
+  const _HeaderIcon({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon),
+      tooltip: tooltip,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      iconSize: 22,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      onPressed: onPressed,
     );
   }
 }
@@ -224,13 +258,11 @@ class _ViewToggle extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = Theme.of(context);
     final ViewMode mode = ref.watch(viewModeProvider);
     final bool isList = mode == ViewMode.list;
-    return IconButton(
-      icon: Icon(isList ? Icons.grid_view_outlined : Icons.view_list_outlined),
+    return _HeaderIcon(
+      icon: isList ? Icons.grid_view_outlined : Icons.view_list_outlined,
       tooltip: isList ? 'Grid view' : 'List view',
-      color: theme.colorScheme.onSurfaceVariant,
       onPressed: () => ref.read(viewModeProvider.notifier).toggle(),
     );
   }

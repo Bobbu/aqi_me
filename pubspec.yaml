@@ -41,6 +41,18 @@ dev_dependencies:
   freezed: ^2.5.7
   json_serializable: ^6.8.0
 
+  # Generates native app icons for Android/iOS from the logo (dev-time tool).
+  flutter_launcher_icons: ^0.14.1
+
+# Native launcher icons, generated from the 1254×1254 logo via:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/aqi_me_logo.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  min_sdk_android: 21
+
 flutter:
   uses-material-design: true
   assets:
