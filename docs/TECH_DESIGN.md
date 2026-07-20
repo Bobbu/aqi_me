@@ -123,9 +123,11 @@ eyebrow/label 11–12px uppercase, +0.08em tracking.
 2. **The AQI scale bar.** A slim green→maroon gradient across the six EPA categories at the
    top of the page, with each tracked location plotted as a dot at its current value
    (stacked when several cluster). A glance shows where your places sit on the scale — and
-   relative to each other — before you read a single number. (This replaced the original
-   "air ribbon," one flat segment per location, which showed category but no scale or
-   magnitude; the widget is kept as `air_ribbon.dart` behind a one-line seam.)
+   relative to each other — before you read a single number. Tap a dot to scroll to its
+   card; band labels beneath the bar collapse to the "Good"/"Hazardous" endpoints on
+   narrow screens. (This replaced the original "air ribbon," one flat segment per location,
+   which showed category but no scale or magnitude; the widget is kept as `air_ribbon.dart`
+   behind a one-line seam.)
 
 ### 4.4 Layout (ASCII wireframe)
 
@@ -210,6 +212,7 @@ lib/
     reading_providers.dart      # per-location AsyncValue providers + refresh
     view_mode.dart              # persisted grid/list toggle
     tutorial.dart               # persisted "tutorial call-out dismissed" flag
+    card_anchors.dart           # per-location GlobalKeys so a tapped dot can scroll to its card
   ui/
     home_page.dart              # header, add-field, scale bar, grid/list, sticky footer
     widgets/
@@ -485,9 +488,14 @@ TLS — with nothing manual in the console.
 - **AQI scale bar** (`ui/widgets/aqi_scale_bar.dart`) — replaced the flat per-location "air
   ribbon" with a green→maroon gradient over the six EPA categories, each location plotted as
   a dot at its value. Positioning uses **equal-width category bands** (so the common 0–150
-  range isn't crushed against the left), with greedy vertical stacking when dots cluster,
-  category labels beneath the bar in wide layouts, and a per-dot tooltip. The old
-  `air_ribbon.dart` is kept unused so a future view-style toggle is a one-line swap.
+  range isn't crushed against the left), with greedy vertical stacking when dots cluster.
+  **Reading a dot:** tap/click scrolls that location's card into view (`Scrollable`
+  `.ensureVisible` via a per-location `GlobalKey` in `state/card_anchors.dart`, attached to
+  the grid cell / list row) — the touch-native identity path; hover/long-press still shows a
+  tooltip. Labels are responsive: all six category names beneath the bar on wide layouts,
+  collapsing to the **"Good"/"Hazardous" endpoints** on narrow/phone so the scale stays
+  legible. The old `air_ribbon.dart` is kept unused so a future view-style toggle is a
+  one-line swap.
 - **Brand / title "AQI Me"** — the browser-tab and bookmark title is "AQI Me" (not
   "AQI.me"). Set in `app.dart` (`MaterialApp.title`, which Flutter writes to
   `document.title` at runtime — the authoritative source), plus `web/index.html`
