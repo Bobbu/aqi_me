@@ -1,4 +1,4 @@
-package com.anystupididea.aqi_me
+package com.anystupididea.aqime
 
 import io.flutter.embedding.android.FlutterActivity
 
