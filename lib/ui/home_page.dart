@@ -6,8 +6,8 @@ import 'package:aqi_me/state/providers.dart';
 import 'package:aqi_me/state/reading_providers.dart';
 import 'package:aqi_me/state/view_mode.dart';
 import 'package:aqi_me/ui/widgets/add_location_field.dart';
-import 'package:aqi_me/ui/widgets/air_ribbon.dart';
 import 'package:aqi_me/ui/widgets/app_footer.dart';
+import 'package:aqi_me/ui/widgets/aqi_scale_bar.dart';
 import 'package:aqi_me/ui/widgets/empty_state.dart';
 import 'package:aqi_me/ui/widgets/help_sheet.dart';
 import 'package:aqi_me/ui/widgets/location_card.dart';
@@ -94,7 +94,7 @@ class _HomePageState extends ConsumerState<HomePage>
                         if (locations.isEmpty)
                           const EmptyState()
                         else ...<Widget>[
-                          AirRibbon(locations: locations),
+                          AqiScaleBar(locations: locations),
                           const SizedBox(height: 24),
                           if (ref.watch(viewModeProvider) == ViewMode.list)
                             _LocationList(locations: locations)
