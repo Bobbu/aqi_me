@@ -9,16 +9,20 @@
 
 ## 1. Overview
 
-Technical design for AQI Me: a **Flutter Web** single-page app that lets anonymous users
-track current AQI for up to 20 locations. The app is **client-only** — it calls the
-free, key-less **Open-Meteo** APIs directly from the browser, persists state per-device
-in the browser, and ships as **static files** on S3 + CloudFront, served at
-**`https://aqi-me.anystupididea.com`**. Deployed via a single CDK stack (scorched-earth,
-one-click, no console, no secrets).
+Technical design for AQI Me: a **Flutter** app — one codebase running on the **web** and as
+native **Android** and **iOS** apps — that lets anonymous users track current AQI for up to
+20 locations. The app is **client-only** — it calls the free, key-less **Open-Meteo** APIs
+directly from the client and persists state per-device, with no backend, no accounts, and
+no secrets. `lib/` is 100% portable Dart (no `dart:html`/`dart:js`), which is why the same
+UI and logic run on all three platforms unchanged.
 
-**No install required.** It's a website: users just visit the URL. We ship a web manifest
-so it's *optionally* installable ("Add to Home Screen"), but that is never required —
-opening the link is the whole experience.
+- **Web** ships as **static files** on S3 + CloudFront at
+  **`https://aqi-me.anystupididea.com`**, deployed via a single CDK stack (scorched-earth,
+  one-click, no console, no secrets). No install required — visiting the URL is the whole
+  experience.
+- **Android / iOS** build from the same codebase (`android/`, `ios/`), signed and
+  distributed to the app stores (Android betas via Firebase App Distribution meanwhile).
+  See §12 for the mobile build/signing/distribution details.
 
 ## 2. Guiding Principles
 
@@ -36,8 +40,8 @@ opening the link is the whole experience.
 
 | Concern | Choice | Notes |
 |--------|--------|-------|
-| UI framework | **Flutter Web** | Single codebase; renders in-browser, no install. |
-| Renderer | **CanvasKit** (default) → evaluate **HTML/`skwasm`** | CanvasKit = fidelity; HTML = smaller payload/faster first paint. Decide via §13. |
+| UI framework | **Flutter** | One codebase → web, Android, iOS. `lib/` is fully portable Dart. |
+| Web renderer | **CanvasKit** (default) | Fidelity for the haze/gradient signature. Native mobile uses Skia directly. |
 | Language | Dart (stable channel) | — |
 | State mgmt | **Riverpod** | Testable, compile-safe, good async (`AsyncValue`). |
 | HTTP | `dio` (or `http`) | `dio` for interceptors/retry; either is fine. |
@@ -46,11 +50,13 @@ opening the link is the whole experience.
 | JSON | `json_serializable` + `freezed` | Immutable models, generated (de)serialization. |
 | Routing | Minimal / single route | One page; deep-link/share is a future item. |
 | Lint | `flutter_lints` (or `very_good_analysis`) | Zero-warning gate. |
-| Infra | **AWS CDK (TypeScript)** | S3 + CloudFront + OAC + Route53 + ACM. |
-| CI/CD | GitHub Actions | Build web → `cdk deploy`. |
+| Web infra | **AWS CDK (TypeScript)** | S3 + CloudFront + OAC + Route53 + ACM. |
+| Mobile signing | Android upload key (Play App Signing); iOS automatic signing | See §12. |
+| Mobile distribution | **Firebase App Distribution** (beta) → Play Store / App Store | `./distribute-android.sh` for Android betas. |
+| Web CI/CD | GitHub Actions | Build web → `cdk deploy`. |
 
 ### Resolved PRD open questions (recommendations)
-1. **Front-end:** Flutter Web (decided).
+1. **Front-end:** Flutter — web plus native Android/iOS from one codebase.
 2. **Auto-refresh cadence:** **60 min** default (data is hourly; avoids wasted calls).
 3. **Pollutant breakdown:** Show **AQI + dominant pollutant** on the card; full
    breakdown (PM2.5/PM10/O₃/NO₂/SO₂/CO) in an expandable detail.
@@ -159,8 +165,8 @@ eyebrow/label 11–12px uppercase, +0.08em tracking.
 ## 5. High-Level Architecture
 
 ```
-┌───────────────────────────── Browser ─────────────────────────────┐
-│  Flutter Web app (static bundle from CloudFront)                    │
+┌────────────── Client: web (CloudFront) · Android · iOS ────────────┐
+│  One Flutter app — same UI + logic on every platform               │
 │                                                                    │
 │  UI (widgets)  ──▶  Controllers (Riverpod)  ──▶  Repository        │
 │        ▲                     │                       │             │
@@ -357,7 +363,13 @@ behind the same interface with no UI changes (per PRD §8).
 Copy voice: plain, active, non-apologetic. Errors say what happened and how to fix it;
 the empty state is an invitation to add the first place.
 
-## 12. Deployment & Infrastructure (CDK)
+## 12. Deployment & Infrastructure
+
+Two delivery paths: the **web** app (scorched-earth CDK) and the **mobile** apps
+(Android/iOS builds → stores). Only the web path is truly one-click; app stores impose
+manual review/verification gates no automation can skip.
+
+### 12.1 Web (AWS CDK)
 
 **Goal:** one command rebuilds everything from scorched earth — hosting, CDN, DNS, and
 TLS — with nothing manual in the console.
@@ -401,6 +413,44 @@ TLS — with nothing manual in the console.
   (leaving the shared apex zone intact).
 - **No secrets anywhere** — the data provider is key-less, so there are no env vars,
   Secrets Manager entries, or `.env` files.
+
+### 12.2 Mobile (Android + iOS)
+
+Platform folders (`android/`, `ios/`) were added with `flutter create --org
+com.anystupididea`. The app identity is **`com.anystupididea.aqime`** everywhere (Android
+applicationId + namespace + Kotlin package; iOS bundle id) — locked before any store
+upload, since it's permanent afterward. Display name "AQI Me"; native launcher icons are
+generated from the logo via `flutter_launcher_icons`.
+
+**Android**
+- **Networking:** `INTERNET` permission + a `url_launcher` https `<queries>` entry in the
+  manifest (so the tutorial video / Privacy / Terms links open a browser on Android 11+).
+- **Release signing (Play App Signing):** an **upload key** (`~/upload-keystore-aqime.jks`,
+  kept outside the repo) with passwords in a **gitignored** `android/key.properties`. Gradle
+  reads it and signs release builds, falling back to debug signing when the file is absent
+  (CI / fresh clone). Google holds the real app-signing key, so a lost upload key is
+  recoverable.
+- **Artifacts:** `flutter build appbundle` → the `.aab` for Play; `flutter build apk` → a
+  universal APK for sideload / Firebase App Distribution.
+- **Beta distribution:** **Firebase App Distribution** (project `aqi-me-app`;
+  `./distribute-android.sh "notes"`) ships signed APKs to the `android-testers` group with
+  no Play account — used while the Play **organization** account clears D-U-N-S
+  verification. Note: Play re-signs via Play App Signing, so a sideloaded / Firebase build
+  has a different signature than the eventual Play build (testers reinstall to switch).
+
+**iOS**
+- Automatic code signing under the Apple Developer team (bundle id
+  `com.anystupididea.aqime`); no ATS changes needed (Open-Meteo is HTTPS).
+- Runs on the Simulator and on-device. Gotcha: a **debug** build needs the Flutter tooling
+  attached to render on a *physical* device — use `flutter run --release` (or `--profile`)
+  for a standalone install, which is also what ships.
+
+**Store submission (the non-scorched-earth part)**
+- Listing copy + graphic assets are drafted in `docs/store_listing.md` and `store/`.
+- The stores impose manual gates — Apple's App Review, Google's org verification (D-U-N-S)
+  and (for personal accounts) the 20-tester/14-day closed-testing requirement — that can't
+  be fully automated. Build + upload *can* be scripted (e.g. Fastlane); submission/review
+  stays manual.
 
 ## 13. Renderer & Performance Notes
 
@@ -513,6 +563,12 @@ TLS — with nothing manual in the console.
   their Node 24-era majors — `actions/checkout@v5`, `actions/setup-node@v5`,
   `aws-actions/configure-aws-credentials@v6` (v5 still ran on Node 20) — to stay clear of
   the Node 20 runner deprecation.
+- **Multi-platform (Android + iOS)** — the web-only app became a three-platform app with no
+  UI rewrite (`lib/` was already portable Dart). Added `android/`/`ios/`, unified the app id
+  to `com.anystupididea.aqime`, native icons, a phone-responsive header, Android release
+  signing, and Firebase App Distribution for betas (`distribute-android.sh`). Validated on
+  the Android emulator, the iOS Simulator, and a physical iPhone. Full details in §12.2;
+  listing/assets in `docs/store_listing.md` + `store/`.
 
 ### Operational learnings (worth remembering)
 

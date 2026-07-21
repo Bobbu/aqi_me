@@ -8,10 +8,12 @@
 
 ## 1. Summary
 
-AQI Me is a single-page web app that lets **anonymous** users add up to **20 locations**
-(by city / state / country name, or by raw GPS coordinates) and see the **current Air
-Quality Index (AQI)** for each — refreshed to within the last hour where the data source
-allows. Local temperature and local time are shown as nice-to-have secondary details.
+AQI Me is a cross-platform app — one **Flutter** codebase running on the **web** and as
+native **Android** and **iOS** apps — that lets **anonymous** users add up to **20
+locations** (by city / state / country name, or by raw GPS coordinates) and see the
+**current Air Quality Index (AQI)** for each — refreshed to within the last hour where the
+data source allows. Local temperature and local time are shown as nice-to-have secondary
+details.
 
 No login, no signup, no personal data collection. All AQI data comes from a **free,
 key-less API** so the app can run entirely client-side with no secrets and no backend
@@ -31,7 +33,8 @@ to operate.
 - User accounts, auth, or cross-device sync.
 - Historical charts / trends / forecasts.
 - Push notifications or threshold alerts.
-- Native mobile apps (responsive web only).
+- ~~Native mobile apps (responsive web only).~~ **Delivered post-v1:** native Android + iOS
+  now build from the same Flutter codebase (see the technical design doc).
 - A backend database or server-side rendering.
 
 ## 4. Target Users
@@ -136,15 +139,18 @@ touches one module, not the UI.
 
 ## 9. Architecture (proposed)
 
-- **Client-only single-page app**, static-hosted (e.g. S3 + CloudFront), no backend,
-  no database, no secrets — aligns with our scorched-earth, one-click CDK deploy stance.
-- All API calls made directly from the browser to Open-Meteo (key-less + CORS).
-- State (the location list) lives in `localStorage`.
+- **Client-only Flutter app**, no backend, no database, no secrets — aligns with our
+  scorched-earth, one-click CDK deploy stance. The web build is static-hosted (S3 +
+  CloudFront); the **same client compiles to native Android and iOS** (no backend needed
+  there either).
+- All API calls made directly from the client to Open-Meteo (key-less + CORS).
+- State (the location list) is persisted per device — `localStorage` on web,
+  `shared_preferences` (native) on Android/iOS.
 - If rate limiting or CORS ever forces it, add a thin proxy/caching Lambda later —
   explicitly **not** needed for v1.
 
-*(Framework choice — Flutter Web vs. a JS SPA — to be decided in a follow-up technical
-design doc.)*
+*(Framework: **Flutter** — chosen for one codebase across web + native Android/iOS. See the
+technical design doc.)*
 
 ## 10. Success Metrics
 
@@ -155,7 +161,7 @@ design doc.)*
 
 ## 11. Decisions (were open questions)
 
-1. **Front-end:** Flutter Web.
+1. **Front-end:** Flutter — one codebase for web plus native Android and iOS.
 2. **Auto-refresh cadence:** 60 min.
 3. **Pollutant breakdown:** show the dominant pollutant on each card (full breakdown is
    post-v1).

@@ -1,10 +1,11 @@
 # AQI Me
 
-A simple, beautiful one-page web app to track **current Air Quality Index (AQI)** for up
-to **20 locations** at once — added by city/state/country or GPS coordinates. No account,
-no install: just visit the site.
+A simple, beautiful app to track **current Air Quality Index (AQI)** for up to **20
+locations** at once — added by city/state/country or GPS coordinates. No account, no login.
+One Flutter codebase ships to the **web** (nothing to install — just visit the site) and to
+**Android and iOS** as native apps.
 
-**Live:** https://aqi-me.anystupididea.com
+**Live (web):** https://aqi-me.anystupididea.com
 
 ## What it does
 
@@ -26,23 +27,32 @@ no install: just visit the site.
 
 ## How it's built
 
-- **Flutter Web** — single codebase, runs in the browser, nothing to install. Fonts are
-  bundled, so the only outbound calls are to Open-Meteo.
+- **Flutter** — one codebase runs on the **web, Android, and iOS**. `lib/` is 100% portable
+  Dart (no web-only imports), so the same UI and logic run everywhere; fonts are bundled, so
+  the only outbound calls are to Open-Meteo.
 - **[Open-Meteo](https://open-meteo.com/)** — free, key-less APIs for air quality,
   weather, and geocoding. No secrets in the app.
-- **AWS CDK (TypeScript)** — private S3 + CloudFront (OAC) + Route53 + ACM, all in
-  `infra/`. `cdk deploy` builds everything from scorched earth; `cdk destroy` tears it
+- **AWS CDK (TypeScript)** — web hosting: private S3 + CloudFront (OAC) + Route53 + ACM, all
+  in `infra/`. `cdk deploy` builds everything from scorched earth; `cdk destroy` tears it
   down. No console, no secrets.
-- **CI/CD** — every push to `main` runs analyze + tests + build and auto-deploys via
-  GitHub Actions using OIDC (no stored AWS keys). See [`.github/workflows/deploy.yml`].
+- **Mobile** — Android release signing via an upload key (Play App Signing); beta APKs go
+  out through **Firebase App Distribution** (`./distribute-android.sh`); the Google Play and
+  Apple App Stores are the release targets. See the technical design doc.
+- **CI/CD** — every push to `main` runs analyze + tests + build and auto-deploys the **web**
+  app via GitHub Actions using OIDC (no stored AWS keys). See [`.github/workflows/deploy.yml`].
 
 ## Deploy
 
 ```bash
-./deploy.sh          # build Flutter web + cdk deploy (one-click, local)
+# Web (one-click, local): build Flutter web + cdk deploy
+./deploy.sh
+
+# Android beta: build a signed release APK + push to Firebase App Distribution
+./distribute-android.sh "What's new"
 ```
 
-Or just push to `main` and let CI/CD deploy it. See [infra/README.md](./infra/README.md).
+Web also auto-deploys on every push to `main` (CI/CD). See [infra/README.md](./infra/README.md).
+Mobile store submission is a manual, per-store step (see the technical design doc).
 
 ## Docs
 
@@ -51,9 +61,15 @@ Or just push to `main` and let CI/CD deploy it. See [infra/README.md](./infra/RE
 
 ## Status
 
-**Shipped and live** at https://aqi-me.anystupididea.com. All milestones (M0–M4) complete,
-plus follow-ups: city/state search (with a comma-less fallback), default locations, bundled
-fonts, hourly auto-refresh, named timezones, social-preview cards, grid/list views with
-drag-and-drop reordering, a help sheet + pollutant glossary, a how-to-video call-out, a
-persisted theme, a sticky footer, and automated CI/CD. See the technical design doc for the
-full picture.
+- **Web:** shipped and live at https://aqi-me.anystupididea.com.
+- **Android & iOS:** the same app builds and runs natively (validated on device and
+  simulator). Android betas ship via Firebase App Distribution while the Google Play
+  organization account clears D-U-N-S verification; Play Store / App Store submission is
+  the next milestone.
+
+All web milestones (M0–M4) complete, plus follow-ups: city/state search (with a comma-less
+fallback), default locations, bundled fonts, hourly auto-refresh, named timezones,
+social-preview cards, grid/list views with drag-and-drop reordering, a help sheet +
+pollutant glossary, a how-to-video call-out, a persisted theme, a sticky footer, the AQI
+scale bar, automated CI/CD, and the multi-platform (Android + iOS) expansion. See the
+technical design doc for the full picture.
