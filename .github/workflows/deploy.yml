@@ -12,6 +12,7 @@ on:
       - '**.md'
       - 'docs/**'
       - 'LICENSE'
+      - 'store/**'
   workflow_dispatch:
 
 # Least privilege: id-token for OIDC, read-only checkout.
