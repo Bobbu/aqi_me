@@ -13,6 +13,12 @@ on:
       - 'docs/**'
       - 'LICENSE'
       - 'store/**'
+      # Mobile-only changes don't affect the web bundle. (A shared change under
+      # lib/ still triggers a deploy, since paths-ignore only skips when *all*
+      # changed files match.)
+      - 'android/**'
+      - 'ios/**'
+      - 'distribute-android.sh'
   workflow_dispatch:
 
 # Least privilege: id-token for OIDC, read-only checkout.
