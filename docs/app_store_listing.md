@@ -1,7 +1,11 @@
-# AQI Me — App Store Listing (iOS, draft)
+# AQI Me — App Store Listing (iOS)
 
-Copy-paste-ready content for App Store Connect. Character limits noted. Universal
-app (iPhone + iPad). Draft for review.
+Content used for the App Store Connect listing. Character limits noted. Universal
+app (iPhone + iPad).
+
+> **Status:** build **1.0.0 (1)** submitted to the App Store on 2026-07-22 — **Waiting for
+> Review** (bundle `com.anystupididea.aqime`, App Apple ID `6793547564`). Support and
+> marketing pages are live (see below).
 
 ---
 
@@ -67,9 +71,14 @@ Also available on the web at aqi-me.anystupididea.com.
 - **Secondary category:** Health & Fitness (optional)
 - **Age rating:** 4+ (no objectionable content — answer all questionnaire items "None/No")
 - **Copyright:** © 2026 Any Stupid Idea
-- **Support URL:** https://anystupididea.com  *(or a dedicated support/contact page)*
-- **Marketing URL (optional):** https://aqi-me.anystupididea.com
-- **Privacy Policy URL:** <your existing Privacy page URL> ✅
+- **Support URL:** https://anystupididea.com/support ✅ (live)
+- **Marketing URL:** https://anystupididea.com/aqi_me ✅ (live)
+- **Privacy Policy URL:** https://anystupididea.com/privacy.html ✅ (live)
+
+> **Support & marketing pages** live in the website repo (`AnyStupidIdea.com/presence/website`),
+> not this one. They're folder-based (`support/index.html`, `aqi_me/index.html`) so the
+> extensionless URLs resolve on the S3 website endpoint (`/support` → 302 → `/support/`).
+> Assets in `images/aqi_me/`. Deployed via that repo's `./deploy.sh`.
 
 ## Export compliance
 - `ITSAppUsesNonExemptEncryption = false` is set in `Info.plist` (we use only standard

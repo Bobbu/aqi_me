@@ -62,10 +62,11 @@ Mobile store submission is a manual, per-store step (see the technical design do
 ## Status
 
 - **Web:** shipped and live at https://aqi-me.anystupididea.com.
-- **Android & iOS:** the same app builds and runs natively (validated on device and
-  simulator). Android betas ship via Firebase App Distribution while the Google Play
-  organization account clears D-U-N-S verification; Play Store / App Store submission is
-  the next milestone.
+- **iOS:** build 1.0.0 (1) **submitted to the App Store — in review**. Support/marketing
+  pages are live at https://anystupididea.com/support and https://anystupididea.com/aqi_me.
+- **Android:** the same app builds and runs natively; betas ship via Firebase App
+  Distribution while the Google Play organization account clears D-U-N-S verification, then
+  Play Store submission.
 
 All web milestones (M0–M4) complete, plus follow-ups: city/state search (with a comma-less
 fallback), default locations, bundled fonts, hourly auto-refresh, named timezones,

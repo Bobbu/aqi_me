@@ -441,12 +441,24 @@ generated from the logo via `flutter_launcher_icons`.
 **iOS**
 - Automatic code signing under the Apple Developer team (bundle id
   `com.anystupididea.aqime`); no ATS changes needed (Open-Meteo is HTTPS).
+- Universal (iPhone + iPad); export compliance declared in `Info.plist`
+  (`ITSAppUsesNonExemptEncryption = false`, standard HTTPS only). Branded launch screen —
+  the logo on an appearance-aware light/dark background (`LaunchBackground` colorset).
 - Runs on the Simulator and on-device. Gotcha: a **debug** build needs the Flutter tooling
   attached to render on a *physical* device — use `flutter run --release` (or `--profile`)
   for a standalone install, which is also what ships.
+- **App Store build:** `flutter build ipa --release` (Xcode cloud-managed distribution
+  signing) → upload via the **Transporter** app. Build **1.0.0 (1) submitted 2026-07-22 —
+  Waiting for Review** (App Apple ID `6793547564`).
 
 **Store submission (the non-scorched-earth part)**
-- Listing copy + graphic assets are drafted in `docs/store_listing.md` and `store/`.
+- Listing copy + graphic assets: `docs/app_store_listing.md` (iOS), `docs/store_listing.md`
+  (Play), and `store/` — iOS screenshots at native device sizes in `store/screenshots-ios/`.
+- **Support & marketing pages** are live, but hosted on the marketing site (a *separate*
+  repo, `AnyStupidIdea.com/presence/website`): `https://anystupididea.com/support` and
+  `/aqi_me`. They're folder + `index.html` so the extensionless URLs resolve on the S3
+  website endpoint (`/support` → 302 → `/support/` → 200) — which is what Apple's
+  support-URL check follows.
 - The stores impose manual gates — Apple's App Review, Google's org verification (D-U-N-S)
   and (for personal accounts) the 20-tester/14-day closed-testing requirement — that can't
   be fully automated. Build + upload *can* be scripted (e.g. Fastlane); submission/review
