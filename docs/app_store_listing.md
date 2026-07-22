@@ -101,13 +101,21 @@ party. The conservative, honest declaration:
 
 ---
 
-## Screenshots (generating)
-App Store Connect requires the largest device sizes; smaller ones are optional.
-- **iPhone 6.7"** — 1290×2796 (from the iPhone 16 Pro Max simulator)
-- **iPad 13"** — 2064×2752 (from the iPad Pro 13" simulator)
+## Screenshots
+Real-simulator captures live in `store/screenshots-ios/`. App Store Connect's slots
+for this app want the 6.7"/12.9" sizes, so use those; the 6.9"/13" originals are kept
+too in case a slot asks for them.
 
-Same three compositions as the Play set (grid hero, dark list, AQI-scale help sheet),
-captured at these device sizes.
+| Slot in App Store Connect | Folder | Size |
+|---|---|---|
+| **iPhone** (6.5"/6.7" slot) | `iphone-6.7/` | 1284×2778 |
+| **iPad** (12.9" slot) | `ipad-12.9/` | 2048×2732 |
+| iPhone 6.9" (if a slot asks) | `iphone-6.9/` | 1320×2868 |
+| iPad 13" (if a slot asks) | `ipad-13/` | 2064×2752 |
+
+Two compositions each: grid-light hero + dark-list. Apple rejects wrong dimensions, so
+match the folder to the slot's stated size (resize with `magick … -resize WxH^ -gravity
+center -extent WxH` — scale-to-fill + tiny center crop, no distortion).
 
 ## Build / upload
 - `flutter build ipa --release` → `build/ios/ipa/*.ipa`
