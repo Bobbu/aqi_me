@@ -16,8 +16,28 @@ recording, and reply in the Resolution Center, then resubmit the same build.
 1. Paste the **reply text below** into **Resolution Center → Reply to App Review**.
 2. Paste the same text into **App Store Connect → App Review Information → Notes**
    (so it carries to every future submission).
-3. Attach the **screen recording** (see "Screen recording" section) to the reply.
+3. Attach the **screen recording** (see "Screen recording" section) to the reply —
+   or, if the attachment fails, link it (see "What was actually submitted" below).
 4. Resubmit build 1.0.0 (1) — no code change or new build required.
+
+## What was actually submitted (2026-07-23)
+- The recording was captured on the **iPad Pro 13" (M4)** and rotation-corrected
+  (see "Screen recording" notes).
+- **Attaching the MP4 to the Resolution Center reply kept failing** ("submit later"),
+  so it was uploaded as an **unlisted YouTube video** and delivered as a link in the
+  reply. The exact message added to the reply:
+  > I tried repeatedly to attach an MP4 screen recording made on my iPad, but the
+  > "reply" kept failing and asked that I submit later. I uploaded the screen
+  > recording as an unlisted video on YouTube -- you can view it here:
+  >
+  > https://youtu.be/lF10XMdR-54
+- **Still to do:** the reply text + this YouTube link went into the **Resolution
+  Center reply only**, not the version's **App Review Information → Notes** field.
+  Add both to Notes so the next build's reviewer sees them automatically.
+- **Takeaway for future submissions:** the App Store Connect reply uploader is
+  flaky with video; an **unlisted YouTube (or Vimeo) link is an accepted fallback**.
+  Keep the link **Unlisted or Public** (never Private) and verify it plays while
+  logged out.
 
 ---
 
@@ -29,8 +49,9 @@ recording, and reply in the Resolution Center, then resubmit the same build.
 > device permission.** Several items below are therefore not applicable; we've
 > answered all seven for completeness.
 >
-> **1. Screen recording.** A recording captured on a physical iPhone is attached.
-> It launches the app and walks through the core flow: the two example locations
+> **1. Screen recording.** A recording captured on a physical iPad Pro 13" (M4) is
+> provided (attached, or linked if the attachment fails — see the YouTube link in the
+> reply). It launches the app and walks through the core flow: the two example locations
 > that preload on first launch, adding a location by name and by GPS coordinates,
 > viewing each location's color-coded AQI card, tapping a dot on the AQI scale bar
 > to jump to its card, switching grid/list view, and opening the built-in AQI help
