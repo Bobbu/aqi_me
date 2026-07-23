@@ -159,7 +159,8 @@ class _Header extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     // Phones can't fit the 30px title plus the logo, count, and action icons on
-    // one row, so shrink the title on narrow widths and keep it to a line.
+    // one row, so shrink the title on narrow widths and keep it to a line — and
+    // drop the tagline entirely, which otherwise just truncates to an ellipsis.
     final bool narrow = MediaQuery.sizeOf(context).width < 480;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -188,12 +189,13 @@ class _Header extends ConsumerWidget {
                   letterSpacing: 0.5,
                 ),
               ),
-              Text(
-                'Air quality at a glance',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall,
-              ),
+              if (!narrow)
+                Text(
+                  'Air quality at a glance',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
             ],
           ),
         ),
