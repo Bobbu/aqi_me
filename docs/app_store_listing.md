@@ -3,9 +3,12 @@
 Content used for the App Store Connect listing. Character limits noted. Universal
 app (iPhone + iPad).
 
-> **Status:** build **1.0.0 (1)** submitted to the App Store on 2026-07-22 — **Waiting for
-> Review** (bundle `com.anystupididea.aqime`, App Apple ID `6793547564`). Support and
-> marketing pages are live (see below).
+> **Status:** build **1.0.0 (1)** was **returned by review on 2026-07-22 as Guideline 2.1
+> "Information Needed"** — Apple's standard context-request template (empty App Review
+> Notes), not a defect. Responding via the Resolution Center with reviewer notes + a screen
+> recording, then resubmitting the same build; see `app_review_response.md`. (bundle
+> `com.anystupididea.aqime`, App Apple ID `6793547564`.) Support and marketing pages are
+> live (see below).
 
 ---
 

@@ -62,8 +62,12 @@ Mobile store submission is a manual, per-store step (see the technical design do
 ## Status
 
 - **Web:** shipped and live at https://aqi-me.anystupididea.com.
-- **iOS:** build 1.0.0 (1) **submitted to the App Store — in review**. Support/marketing
-  pages are live at https://anystupididea.com/support and https://anystupididea.com/aqi_me.
+- **iOS:** build 1.0.0 (1) **returned by review as Guideline 2.1 "Information Needed"**
+  (Apple's standard context-request template, not a defect) — responding via the
+  Resolution Center with the reviewer notes + a screen recording, then resubmitting the
+  same build. See [`docs/app_review_response.md`](./docs/app_review_response.md).
+  Support/marketing pages are live at https://anystupididea.com/support and
+  https://anystupididea.com/aqi_me.
 - **Android:** the same app builds and runs natively; betas ship via Firebase App
   Distribution while the Google Play organization account clears D-U-N-S verification, then
   Play Store submission.
